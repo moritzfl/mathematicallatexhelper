@@ -13,21 +13,19 @@
  */
 package de.moritzf.latexhelper;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.GridLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.text.Document;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
 
 import org.scilab.forge.jlatexmath.TeXConstants;
 import org.scilab.forge.jlatexmath.TeXFormula;
@@ -49,6 +47,8 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
      * The latex source.
      */
     private JTextArea latexSource = new JTextArea();
+
+    private UndoManager undoManager;
 
     /**
      * The btn save.
@@ -73,6 +73,9 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
         Container content = this.getContentPane();
         content.setLayout(new GridLayout(2, 1));
         this.latexSource = new JTextArea();
+
+
+        initUndo();
 
         JPanel editorArea = new JPanel();
         editorArea.setLayout(new BorderLayout());
@@ -100,6 +103,45 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
         WindowFunctions.enableOSXFullscreen(this);
 
         this.setVisible(true);
+    }
+
+    private void initUndo(){
+        undoManager = new UndoManager();
+        Document doc = latexSource.getDocument();
+        doc.addUndoableEditListener(e -> {
+            undoManager.addEdit(e.getEdit());
+        });
+
+        InputMap im = latexSource.getInputMap(JComponent.WHEN_FOCUSED);
+        ActionMap am = latexSource.getActionMap();
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), "Undo");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), "Redo");
+
+        am.put("Undo", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    if (undoManager.canUndo()) {
+                        undoManager.undo();
+                    }
+                } catch (CannotUndoException exp) {
+                    exp.printStackTrace();
+                }
+            }
+        });
+        am.put("Redo", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    if (undoManager.canRedo()) {
+                        undoManager.redo();
+                    }
+                } catch (CannotUndoException exp) {
+                    exp.printStackTrace();
+                }
+            }
+        });
     }
 
     /**

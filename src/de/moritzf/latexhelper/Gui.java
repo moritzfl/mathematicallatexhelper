@@ -75,7 +75,7 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
         this.latexSource = new JTextArea();
 
 
-        initUndo();
+        initUndoRedoFunctionality();
 
         JPanel editorArea = new JPanel();
         editorArea.setLayout(new BorderLayout());
@@ -105,7 +105,10 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
         this.setVisible(true);
     }
 
-    private void initUndo(){
+    /**
+     * Instantiates a the undo-redo functionality for the textarea.
+     */
+    private void initUndoRedoFunctionality(){
         undoManager = new UndoManager();
         Document doc = latexSource.getDocument();
         doc.addUndoableEditListener(e -> {

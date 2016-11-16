@@ -1,4 +1,4 @@
-package de.moritzf.latexpresentation;
+package de.moritzf.latexhelper;
 
 
 public class Main {

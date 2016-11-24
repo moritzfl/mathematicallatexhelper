@@ -53,7 +53,7 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
     /**
      * The btn save.
      */
-    private JButton btnSave = new JButton("Save to desktop");
+    private JButton btnSave = new JButton("Save to user home");
 
     /**
      * The btn copy.
@@ -152,7 +152,7 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
      *
      * @param expression the expression
      */
-    public void render(String expression) {
+    private void render(String expression) {
         try {
             if (expression.isEmpty()) {
                 expression = "Enter \\quad LaTeX-Expression \\quad to  \\quad begin.";
@@ -193,7 +193,7 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
                 JOptionPane.showMessageDialog(this,
                         "<html>Make sure you entered a valid LaTeX-expression.<br>"
                                 + " Furthermore ensure that you have writing access to"
-                                + " the directory: " + Export.USER_DESKTOP + "<html>",
+                                + " the directory: " + Export.USER_HOME + "<html>",
                         "Could not save", JOptionPane.ERROR_MESSAGE);
             }
         } else if (e.getSource().equals(this.btnCopy)) {

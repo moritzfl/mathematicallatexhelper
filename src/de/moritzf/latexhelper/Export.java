@@ -41,8 +41,7 @@ import org.scilab.forge.jlatexmath.TeXIcon;
  */
 public class Export {
 
-    public static final String USER_DESKTOP = FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath() + "/Desktop/";
-
+    public static final String USER_HOME = FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath();
 
     /**
      * Sets the clipboard. Renders the LaTeX-expression and stores an image in
@@ -84,8 +83,8 @@ public class Export {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
         Calendar cal = Calendar.getInstance();
         String date = dateFormat.format(cal.getTime());
-        generatePng(latexSource, new File(USER_DESKTOP + "/LaTeX-Rendering_" + date + ".png"));
-        System.out.println("Saved file to " + USER_DESKTOP + "/LaTeX-Rendering_" + date + ".png");
+        generatePng(latexSource, new File(USER_HOME + "/LaTeX-Rendering_" + date + ".png"));
+        System.out.println("Saved file to " + USER_HOME + "/LaTeX-Rendering_" + date + ".png");
 
     }
 

@@ -32,7 +32,7 @@ import org.scilab.forge.jlatexmath.TeXFormula;
 import org.scilab.forge.jlatexmath.TeXIcon;
 
 /**
- * The Class Gui.
+ * This class defines the user interface.
  *
  * @author Moritz Floeter
  */

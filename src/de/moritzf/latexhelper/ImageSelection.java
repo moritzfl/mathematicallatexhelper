@@ -18,7 +18,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class ImageSelection. Intermediate data class for taking images to the
  * clipboard.

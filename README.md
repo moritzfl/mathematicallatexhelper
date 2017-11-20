@@ -2,7 +2,7 @@
 
 Helper tool for rendering  mathematical LaTeX-expressions. 
 
-![Screenshot](http://moritzf.de/files/projects/mathematicallatexhelper.png)
+![Screenshot](http://www.moritzf.de/projects/img/mathematicallatexhelper.png)
 
 The tool provides the user with a very simplistic gui that renders tex-expressions directly while typing and is able to copy the rendered images to the clipboard or alternatively save them to the desktop while maintaining transparency information.
 

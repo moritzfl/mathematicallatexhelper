@@ -73,7 +73,7 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
         Container content = this.getContentPane();
         content.setLayout(new GridLayout(2, 1));
         this.latexSource = new JTextArea();
-        this.latexSource.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        this.latexSource.setFont(new Font("Courier", Font.PLAIN, 14));
 
         initUndoRedoFunctionality();
 

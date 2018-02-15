@@ -61,6 +61,7 @@
                 <configuration>
                     <mainClass>${mainClass}</mainClass>
                     <iconFile>icon.icns</iconFile>
+                    <generateDiskImageFile>true</generateDiskImageFile>
                 </configuration>
                 <executions>
                     <execution>

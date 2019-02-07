@@ -18,6 +18,8 @@ import java.awt.MouseInfo;
 import java.awt.Rectangle;
 import java.awt.Window;
 import java.lang.reflect.Method;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.UIManager;
 
@@ -94,7 +96,7 @@ public class WindowFunctions {
 			Method method = util.getMethod("setWindowCanFullScreen", params);
 			method.invoke(util, window, true);
 		} catch (Exception e) {
-			System.out.println("OSX-Fullscreen-Mode not available");
+			Logger.getLogger(Gui.class.getName()).log(Level.SEVERE, "Could not enable OSX-Fullscreen", e);
 		}
 	}
 

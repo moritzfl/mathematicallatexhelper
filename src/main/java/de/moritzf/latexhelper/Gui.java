@@ -17,6 +17,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -46,7 +50,7 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
     /**
      * The latex source.
      */
-    private JTextArea latexSource = new JTextArea();
+    private JTextArea latexSource;
 
     private UndoManager undoManager;
 
@@ -65,6 +69,19 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
      */
     private JLabel drawingArea = new JLabel("");
 
+
+    private static Font getFontForTextArea() {
+        try {
+            InputStream is = Gui.class.getResourceAsStream("SourceCodeVariable-Roman.ttf");
+            Font font = Font.createFont(Font.TRUETYPE_FONT, is);
+            font = font.deriveFont(Font.PLAIN, 16);
+            return font;
+        } catch (FontFormatException | IOException ex) {
+            Logger.getLogger(Gui.class.getName()).log(Level.SEVERE, "Font SourceCodePro not available", ex);
+            return new Font("Courier", Font.PLAIN, 16);
+        }
+    }
+
     /**
      * Instantiates a new gui.
      */
@@ -73,7 +90,8 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
         Container content = this.getContentPane();
         content.setLayout(new GridLayout(2, 1));
         this.latexSource = new JTextArea();
-        this.latexSource.setFont(new Font("Courier", Font.PLAIN, 14));
+
+        this.latexSource.setFont(getFontForTextArea());
 
         initUndoRedoFunctionality();
 

@@ -17,16 +17,11 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.UndoableEditEvent;
-import javax.swing.event.UndoableEditListener;
+import javax.swing.filechooser.FileSystemView;
 import javax.swing.text.Document;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
@@ -40,7 +35,7 @@ import org.scilab.forge.jlatexmath.TeXIcon;
  *
  * @author Moritz Floeter
  */
-public class Gui extends JFrame implements ActionListener, DocumentListener {
+public class MathematicalLatexHelperGui extends JFrame implements ActionListener, DocumentListener {
 
     /**
      * The Constant serialVersionUID.
@@ -71,25 +66,17 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
 
 
     private static Font getFontForTextArea() {
-        try {
-            InputStream is = Gui.class.getResourceAsStream("SourceCodeVariable-Roman.ttf");
-            Font font = Font.createFont(Font.TRUETYPE_FONT, is);
-            font = font.deriveFont(Font.PLAIN, 16);
-            return font;
-        } catch (FontFormatException | IOException ex) {
-            Logger.getLogger(Gui.class.getName()).log(Level.SEVERE, "Font SourceCodePro not available", ex);
-            return new Font("Courier", Font.PLAIN, 16);
-        }
+        return new Font("Courier", Font.PLAIN, 16);
     }
 
     /**
      * Instantiates a new gui.
      */
-    public Gui() {
+    public MathematicalLatexHelperGui() {
         super("Mathematical LaTeX Helper");
         Container content = this.getContentPane();
         content.setLayout(new GridLayout(2, 1));
-        this.latexSource = new JTextArea();
+        this.latexSource = new SteganographyTextArea();
 
         this.latexSource.setFont(getFontForTextArea());
 
@@ -126,7 +113,7 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
     /**
      * Instantiates a the undo-redo functionality for the textarea.
      */
-    private void initUndoRedoFunctionality(){
+    private void initUndoRedoFunctionality() {
         undoManager = new UndoManager();
         Document doc = latexSource.getDocument();
         doc.addUndoableEditListener(e -> {
@@ -207,6 +194,17 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
         if (e.getSource().equals(this.btnSave)) {
             try {
                 Export.save(this.latexSource.getText());
+
+                Timer timer = new Timer(3000, new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent arg0) {
+                        MathematicalLatexHelperGui.this.render(latexSource.getText());
+                    }
+                });
+                MathematicalLatexHelperGui.this.render("\\text{Saved to folder: "
+                        + FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath() + " }");
+                timer.setRepeats(false); // Only execute once
+                timer.start();
             } catch (Exception exception) {
                 JOptionPane.showMessageDialog(this,
                         "<html>Make sure you entered a valid LaTeX-expression.<br>"
@@ -214,6 +212,7 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
                                 + " the directory: " + Export.USER_HOME + "<html>",
                         "Could not save", JOptionPane.ERROR_MESSAGE);
             }
+
         } else if (e.getSource().equals(this.btnCopy)) {
             try {
                 Export.setClipboard(this.latexSource.getText());
@@ -259,6 +258,16 @@ public class Gui extends JFrame implements ActionListener, DocumentListener {
     public void changedUpdate(DocumentEvent e) {
         render(this.latexSource.getText());
 
+    }
+
+    /**
+     * The main method.
+     *
+     * @param args the arguments
+     */
+    public static void main(String[] args) {
+        WindowFunctions.setSystemWindowDesign();
+        new MathematicalLatexHelperGui();
     }
 
 

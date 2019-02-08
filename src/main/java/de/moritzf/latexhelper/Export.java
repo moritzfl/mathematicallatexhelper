@@ -14,10 +14,10 @@
 package de.moritzf.latexhelper;
 
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Insets;
-import java.awt.Toolkit;
+import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +41,9 @@ import org.scilab.forge.jlatexmath.TeXIcon;
  */
 public class Export {
 
+    /**
+     * The constant USER_HOME.
+     */
     public static final String USER_HOME = FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath();
 
     /**
@@ -51,9 +54,30 @@ public class Export {
      * @param expression the new clipboard
      */
     public static void setClipboard(String expression) {
+        BufferedImage image = renderImageFromExpression(expression);
+        ImageSelection imgSel = new ImageSelection(image);
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(imgSel, null);
+    }
+
+
+    /**
+     * Saves a latex expression as a rendered png file in the folder from which
+     * the software was started.
+     *
+     * @param latexSource the latex source
+     * @throws IOException the io exception
+     */
+    public static void save(String latexSource) throws IOException {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+        Calendar cal = Calendar.getInstance();
+        String date = dateFormat.format(cal.getTime());
+        generatePng(latexSource, new File(USER_HOME + "/LaTeX-Rendering_" + date + ".png"));
+    }
+
+    private static BufferedImage renderImageFromExpression(String expression) {
         TeXFormula formula = new TeXFormula(expression);
 
-        // render the formla to an icon of the same size as the formula.
+        // render the formula to an icon of the same size as the formula.
         TeXIcon icon = formula.createTeXIcon(TeXConstants.STYLE_DISPLAY, 100);
 
         // insert a border
@@ -68,24 +92,9 @@ public class Export {
         jl.setForeground(new Color(0, 0, 0));
         icon.paintIcon(jl, g2, 0, 0);
 
-        ImageSelection imgSel = new ImageSelection(image);
-        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(imgSel, null);
-    }
+        image = SteganographyUtil.encode(image, expression);
 
-    /**
-     * Saves a latex expression as a rendered png file in the folder from which
-     * the software was started.
-     *
-     * @param latexSource the latex source
-     * @throws Exception
-     */
-    public static void save(String latexSource) throws IOException {
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-        Calendar cal = Calendar.getInstance();
-        String date = dateFormat.format(cal.getTime());
-        generatePng(latexSource, new File(USER_HOME + "/LaTeX-Rendering_" + date + ".png"));
-        System.out.println("Saved file to " + USER_HOME + "/LaTeX-Rendering_" + date + ".png");
-
+        return image;
     }
 
     /**
@@ -93,22 +102,63 @@ public class Export {
      * it to the output file passed to this method. The png file will include an
      * alpha channel for transparency.
      *
-     * @param formula the formula
-     * @param output  the output
+     * @param expression the formula
+     * @param output     the output
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    private static void generatePng(String formula, File output) throws IOException {
-
-        TeXFormula teXFormula = new TeXFormula(formula);
-        TeXIcon teXIcon = teXFormula.createTeXIcon(TeXConstants.STYLE_DISPLAY, 100f);
-
-        BufferedImage image = new BufferedImage(teXIcon.getIconWidth(), teXIcon.getIconHeight(),
-                BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = (Graphics2D) image.getGraphics();
-        teXIcon.paintIcon(null, g2, 0, 0);
-        g2.dispose();
-
+    private static void generatePng(String expression, File output) throws IOException {
+        BufferedImage image = renderImageFromExpression(expression);
         ImageIO.write(image, "png", output);
     }
 
+
+    private static class ImageSelection implements Transferable {
+
+        /**
+         * The image.
+         */
+        private Image image;
+
+        /**
+         * Instantiates a new image selection.
+         *
+         * @param image the image
+         */
+        public ImageSelection(Image image) {
+            this.image = image;
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see java.awt.datatransfer.Transferable#getTransferDataFlavors()
+         */
+        public DataFlavor[] getTransferDataFlavors() {
+            return new DataFlavor[]{DataFlavor.imageFlavor};
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see java.awt.datatransfer.Transferable#isDataFlavorSupported(java.awt.
+         * datatransfer.DataFlavor)
+         */
+        public boolean isDataFlavorSupported(DataFlavor flavor) {
+            return DataFlavor.imageFlavor.equals(flavor);
+        }
+
+        /*
+         * (non-Javadoc)
+         *
+         * @see
+         * java.awt.datatransfer.Transferable#getTransferData(java.awt.datatransfer.
+         * DataFlavor)
+         */
+        public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+            if (!DataFlavor.imageFlavor.equals(flavor)) {
+                throw new UnsupportedFlavorException(flavor);
+            }
+            return image;
+        }
+    }
 }

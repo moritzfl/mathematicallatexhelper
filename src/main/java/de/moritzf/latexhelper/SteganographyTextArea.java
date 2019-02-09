@@ -47,7 +47,7 @@ public class SteganographyTextArea extends JTextArea implements KeyListener {
                     }
                 } else if (evt.getTransferable().isDataFlavorSupported(DataFlavor.imageFlavor)) {
                     try {
-                        BufferedImage image = (BufferedImage) evt.getTransferable().getTransferData(DataFlavor.imageFlavor);
+                        BufferedImage image = toBufferedImage((Image) evt.getTransferable().getTransferData(DataFlavor.imageFlavor));
                         if (image != null) {
                             String text = SteganographyUtil.decode(image);
                             if (text != null && !text.isEmpty()) {

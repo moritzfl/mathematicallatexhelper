@@ -19,8 +19,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -29,6 +28,20 @@ import javax.imageio.ImageIO;
 import javax.swing.JLabel;
 import javax.swing.filechooser.FileSystemView;
 
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Paragraph;
+import gutenberg.itext.ITextContext;
+import gutenberg.itext.PygmentsAdapter;
+import gutenberg.itext.Styles;
+import gutenberg.itext.TextStripper;
+import gutenberg.itext.emitter.SourceCodeLaTeXExtension;
+import gutenberg.itext.model.Markdown;
+import gutenberg.itext.model.SourceCode;
+import gutenberg.itext.support.ITextContextBuilder;
+import gutenberg.pygments.Pygments;
+import gutenberg.pygments.styles.DefaultStyle;
 import org.scilab.forge.jlatexmath.TeXConstants;
 import org.scilab.forge.jlatexmath.TeXFormula;
 import org.scilab.forge.jlatexmath.TeXIcon;
@@ -68,29 +81,31 @@ public class Export {
      * @throws IOException the io exception
      */
     public static void save(String latexSource) throws IOException {
+
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
         Calendar cal = Calendar.getInstance();
         String date = dateFormat.format(cal.getTime());
         generatePng(latexSource, new File(USER_HOME + "/LaTeX-Rendering_" + date + ".png"));
+        generatePdf(latexSource, new File(USER_HOME + "/LaTeX-Rendering_" + date + ".pdf"));
+
+
     }
 
+    public static void generatePdf(String expression, File file) {
+        //somehow do this with gutenberg
+    }
+
+
     private static BufferedImage renderImageFromExpression(String expression) {
-        TeXFormula formula = new TeXFormula(expression);
+        TeXFormula teXFormula = new TeXFormula(expression);
+        TeXIcon teXIcon = teXFormula.createTeXIcon(TeXConstants.STYLE_DISPLAY, 30);
 
-        // render the formula to an icon of the same size as the formula.
-        TeXIcon icon = formula.createTeXIcon(TeXConstants.STYLE_DISPLAY, 100);
-
-        // insert a border
-        icon.setInsets(new Insets(5, 5, 5, 5));
-
-        // now create an actual image of the rendered equation
-        BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = image.createGraphics();
-        g2.setColor(Color.white);
-        g2.fillRect(0, 0, icon.getIconWidth(), icon.getIconHeight());
-        JLabel jl = new JLabel();
-        jl.setForeground(new Color(0, 0, 0));
-        icon.paintIcon(jl, g2, 0, 0);
+        BufferedImage image = new BufferedImage(teXIcon.getIconWidth(), teXIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = (Graphics2D) image.getGraphics();
+        g2.setBackground(Color.WHITE);
+        g2.fillRect(0, 0, teXIcon.getIconWidth(), teXIcon.getIconHeight());
+        teXIcon.paintIcon(null, g2, 0, 0);
+        g2.dispose();
 
         image = SteganographyUtil.encode(image, expression);
 
@@ -160,5 +175,7 @@ public class Export {
             }
             return image;
         }
+
+
     }
 }

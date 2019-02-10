@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileSystemView;
 import javax.swing.text.Document;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
@@ -37,12 +36,6 @@ import org.scilab.forge.jlatexmath.TeXIcon;
  * @author Moritz Floeter
  */
 public class MathematicalLatexHelperGui extends JFrame implements ActionListener, DocumentListener {
-
-    /**
-     * The Constant serialVersionUID.
-     */
-    private static final long serialVersionUID = -3765767133973545257L;
-
     /**
      * The latex source.
      */
@@ -58,7 +51,12 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
     /**
      * The btn copy.
      */
-    private JButton btnCopy = new JButton("Copy image");
+    private JButton btnCopyPdf = new JButton("Copy pdf");
+
+    /**
+     * The btn copy.
+     */
+    private JButton btnCopyImage = new JButton("Copy image");
 
     /**
      * The drawing area.
@@ -88,7 +86,8 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
         editorArea.add(new JScrollPane(this.latexSource), BorderLayout.CENTER);
 
         JPanel btnPnl = new JPanel(new GridLayout(1, 0));
-        btnPnl.add(btnCopy);
+        btnPnl.add(btnCopyImage);
+        btnPnl.add(btnCopyPdf);
         btnPnl.add(btnSave);
         editorArea.add(btnPnl, BorderLayout.SOUTH);
 
@@ -97,7 +96,8 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
 
         // adding Listeners
         latexSource.getDocument().addDocumentListener(this);
-        this.btnCopy.addActionListener(this);
+        this.btnCopyImage.addActionListener(this);
+        this.btnCopyPdf.addActionListener(this);
         this.btnSave.addActionListener(this);
 
         this.latexSource.setText("x=\\frac{-b \\pm \\sqrt {b^2-4ac}}{2a}");
@@ -202,8 +202,10 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
                         MathematicalLatexHelperGui.this.render(latexSource.getText());
                     }
                 });
+                this.latexSource.setText("\\text{Saved to folder: "
+                        + path.toAbsolutePath().toString().replace("\\", "}\\backslash \\text{") + " }");
                 MathematicalLatexHelperGui.this.render("\\text{Saved to folder: "
-                        + path.toAbsolutePath().toString() + " }");
+                        + path.toAbsolutePath().toString().replace("\\", "}\\backslash \\text{") + " }");
                 timer.setRepeats(false); // Only execute once
                 timer.start();
             } catch (Exception exception) {
@@ -214,15 +216,22 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
                         "Could not save", JOptionPane.ERROR_MESSAGE);
             }
 
-        } else if (e.getSource().equals(this.btnCopy)) {
+        } else if (e.getSource().equals(this.btnCopyImage)) {
             try {
-                Export.setClipboard(this.latexSource.getText());
+                Export.setClipboardAsImage(this.latexSource.getText());
             } catch (Exception exception) {
                 JOptionPane.showMessageDialog(this, "Make sure you entered a valid LaTeX-expression", "Could not copy",
                         JOptionPane.ERROR_MESSAGE);
             }
-        }
+        } else if (e.getSource().equals(this.btnCopyPdf)) {
+            try {
+                Export.setClipboardAsPdf(this.latexSource.getText());
+            } catch (Exception exception) {
+                JOptionPane.showMessageDialog(this, "Make sure you entered a valid LaTeX-expression", "Could not copy",
+                        JOptionPane.ERROR_MESSAGE);
+            }
 
+        }
     }
 
     /*

@@ -1,5 +1,8 @@
 package de.moritzf.latexhelper;
 
+
+import com.itextpdf.text.pdf.PdfReader;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -31,6 +34,7 @@ public class SteganographyTextArea extends JTextArea implements KeyListener {
         this.setDropTarget(new DropTarget() {
             public synchronized void drop(DropTargetDropEvent evt) {
                 if (evt.getTransferable().isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+                    boolean success = false;
                     try {
                         evt.acceptDrop(DnDConstants.ACTION_COPY);
                         List<File> droppedFiles = (List<File>)
@@ -40,10 +44,19 @@ public class SteganographyTextArea extends JTextArea implements KeyListener {
                             String hiddenText = SteganographyUtil.decode(image);
                             if (hiddenText != null && !hiddenText.isEmpty()) {
                                 thisTextArea.setText(hiddenText);
+                                success = true;
+                            }
+                            if (!success) {
+                                PdfReader reader = new PdfReader(droppedFiles.get(0).getAbsolutePath());
+                                String latex = reader.getInfo().get("latex");
+                                if (latex != null && !latex.isEmpty()) {
+                                    thisTextArea.setText(latex);
+                                }
                             }
                         }
+
                     } catch (UnsupportedFlavorException | IOException e) {
-                        e.printStackTrace();
+                        // nothing to do here
                     }
                 } else if (evt.getTransferable().isDataFlavorSupported(DataFlavor.imageFlavor)) {
                     try {
@@ -77,6 +90,24 @@ public class SteganographyTextArea extends JTextArea implements KeyListener {
                     e.consume();
                     this.setText(text);
                 }
+            } else {
+                Transferable transferable = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+                //Check if file or image-file is pasted and return an image
+                if (transferable != null && transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+                    try {
+                        List<File> droppedFiles = (List<File>)
+                                transferable.getTransferData(DataFlavor.javaFileListFlavor);
+
+                        PdfReader reader = new PdfReader(droppedFiles.get(0).getAbsolutePath());
+                        String latex = reader.getInfo().get("latex");
+                        if (latex != null && !latex.isEmpty()) {
+                            this.setText(latex);
+                        }
+                    } catch (UnsupportedFlavorException | IOException ex) {
+                        // nothing to do here
+                    }
+                }
+
             }
         }
     }

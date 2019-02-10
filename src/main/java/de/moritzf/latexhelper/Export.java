@@ -24,25 +24,25 @@ import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.List;
+
 
 import javax.imageio.ImageIO;
-import javax.swing.JLabel;
 import javax.swing.filechooser.FileSystemView;
+
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Element;
-import com.itextpdf.text.Paragraph;
+
 import gutenberg.itext.ITextContext;
 import gutenberg.itext.PygmentsAdapter;
 import gutenberg.itext.Styles;
-import gutenberg.itext.TextStripper;
 import gutenberg.itext.emitter.SourceCodeLaTeXExtension;
-import gutenberg.itext.model.Markdown;
 import gutenberg.itext.model.SourceCode;
-import gutenberg.itext.support.ITextContextBuilder;
 import gutenberg.pygments.Pygments;
 import gutenberg.pygments.styles.DefaultStyle;
+import gutenberg.util.SimpleKeyValues;
 import org.scilab.forge.jlatexmath.TeXConstants;
 import org.scilab.forge.jlatexmath.TeXFormula;
 import org.scilab.forge.jlatexmath.TeXIcon;
@@ -67,12 +67,35 @@ public class Export {
      *
      * @param expression the new clipboard
      */
-    public static void setClipboard(String expression) {
+    public static void setClipboardAsImage(String expression) {
         BufferedImage image = renderImageFromExpression(expression);
         ImageSelection imgSel = new ImageSelection(image);
         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(imgSel, null);
     }
 
+    public static void setClipboardAsPdf(String expression) {
+        try {
+            File file = File.createTempFile("clipboard", ".pdf");
+            generatePdf(expression, file);
+
+            if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+                String[] cmd = {"osascript", "-e", "tell app \"Finder\" to set the clipboard to ( POSIX file \""
+                        + file.getAbsolutePath() + "\" )"};
+                try {
+                    Runtime.getRuntime().exec(cmd);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            } else {
+                FileTransferable fileSelection = new FileTransferable();
+                fileSelection.addFile(file);
+                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(fileSelection, null);
+            }
+        } catch (IOException e) {
+            // nothing to do
+        }
+
+    }
 
     /**
      * Saves a latex expression as a rendered png file in the folder from which
@@ -99,8 +122,33 @@ public class Export {
 
     }
 
-    public static void generatePdf(String expression, File file) {
-        //somehow do this with gutenberg
+    public static void generatePdf(String expression, File file) throws IOException {
+
+        Styles styles = new Styles().initDefaults();
+        PygmentsAdapter pygmentsAdapter = new PygmentsAdapter(
+                new Pygments(),
+                new DefaultStyle(), styles);
+        SimpleKeyValues kvs = new SimpleKeyValues();
+        TeXFormula teXFormula = new TeXFormula(expression);
+        TeXIcon teXIcon = teXFormula.createTeXIcon(TeXConstants.STYLE_DISPLAY, 30);
+
+        try {
+            ITextContext iTextContext = new ITextContext(kvs, styles).open(file);
+            Document document = iTextContext.getDocument();
+            document.setPageSize(new com.itextpdf.text.Rectangle(teXIcon.getIconWidth() * 0.5f, teXIcon.getIconHeight() * 0.5f));
+            document.setMargins(0, 0, 0, 0);
+            document.newPage();
+            SourceCodeLaTeXExtension extension = new SourceCodeLaTeXExtension(pygmentsAdapter);
+            SourceCode sourceCode = new SourceCode("latex", expression);
+
+            extension.emit(sourceCode, iTextContext);
+            iTextContext.getDocument().addHeader("latex", expression);
+            iTextContext.close();
+        } catch (DocumentException e) {
+
+            throw new IOException(e.getMessage() + "\n" + e.getCause());
+        }
+
     }
 
 
@@ -182,6 +230,42 @@ public class Export {
                 throw new UnsupportedFlavorException(flavor);
             }
             return image;
+        }
+
+
+    }
+
+    public static class FileTransferable implements Transferable {
+
+        /**
+         * Supported data flavor
+         */
+        DataFlavor[] dataFlavors = {DataFlavor.javaFileListFlavor};
+
+        /**
+         * Instances of the File classes to be transferred
+         */
+        List files = new LinkedList();
+
+        public DataFlavor[] getTransferDataFlavors() {
+            return dataFlavors;
+        }
+
+        public boolean isDataFlavorSupported(DataFlavor flavor) {
+            return dataFlavors[0].equals(flavor);
+        }
+
+        public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+            return files;
+        }
+
+        /**
+         * Adds a file for the transfer.
+         *
+         * @param f
+         */
+        public void addFile(File f) {
+            files.add(f);
         }
 
 

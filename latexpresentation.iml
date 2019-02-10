@@ -29,6 +29,10 @@
     </orderEntry>
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-simple:1.7.12" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.12" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.apache.pdfbox:pdfbox:1.8.7" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.apache.pdfbox:fontbox:1.8.7" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.apache.pdfbox:jempbox:1.8.7" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: commons-logging:commons-logging:1.1.1" level="project" />
     <orderEntry type="library" name="Maven: org.technbolts:gutenberg:1.3.0" level="project" />
     <orderEntry type="library" name="Maven: org.pegdown:pegdown:1.5.0" level="project" />
     <orderEntry type="library" name="Maven: org.parboiled:parboiled-java:1.1.7" level="project" />
@@ -49,9 +53,5 @@
     <orderEntry type="library" name="Maven: org.scilab.forge:jlatexmath-font-cyrillic:1.0.6" level="project" />
     <orderEntry type="library" name="Maven: com.itextpdf:itextpdf:5.4.4" level="project" />
     <orderEntry type="library" name="Maven: com.itextpdf.tool:xmlworker:5.4.4" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.apache.pdfbox:pdfbox:1.8.7" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.apache.pdfbox:fontbox:1.8.7" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.apache.pdfbox:jempbox:1.8.7" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: commons-logging:commons-logging:1.1.1" level="project" />
   </component>
 </module>

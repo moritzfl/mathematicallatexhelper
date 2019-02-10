@@ -194,7 +194,7 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
     public void actionPerformed(ActionEvent e) {
         if (e.getSource().equals(this.btnSave)) {
             try {
-                 Path path = Export.save(this.latexSource.getText());
+                Path path = Export.save(this.latexSource.getText());
 
                 Timer timer = new Timer(3000, new ActionListener() {
                     @Override

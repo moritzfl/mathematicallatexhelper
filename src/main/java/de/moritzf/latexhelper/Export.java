@@ -253,10 +253,7 @@ public class Export {
 
     }
 
-    /**
-     * The type File transferable.
-     */
-    public static class FileTransferable implements Transferable {
+    private static class FileTransferable implements Transferable {
 
         /**
          * Supported data flavor

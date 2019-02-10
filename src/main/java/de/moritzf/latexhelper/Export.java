@@ -154,7 +154,7 @@ public class Export {
 
     private static BufferedImage renderImageFromExpression(String expression) {
         TeXFormula teXFormula = new TeXFormula(expression);
-        TeXIcon teXIcon = teXFormula.createTeXIcon(TeXConstants.STYLE_DISPLAY, 30);
+        TeXIcon teXIcon = teXFormula.createTeXIcon(TeXConstants.STYLE_DISPLAY, 100);
 
         BufferedImage image = new BufferedImage(teXIcon.getIconWidth(), teXIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = (Graphics2D) image.getGraphics();

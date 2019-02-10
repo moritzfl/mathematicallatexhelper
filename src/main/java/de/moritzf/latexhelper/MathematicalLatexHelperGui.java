@@ -202,8 +202,6 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
                         MathematicalLatexHelperGui.this.render(latexSource.getText());
                     }
                 });
-                this.latexSource.setText("\\text{Saved to folder: "
-                        + path.toAbsolutePath().toString().replace("\\", "}\\backslash \\text{") + " }");
                 MathematicalLatexHelperGui.this.render("\\text{Saved to folder: "
                         + path.toAbsolutePath().toString().replace("\\", "}\\backslash \\text{") + " }");
                 timer.setRepeats(false); // Only execute once

@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.moritzfl</groupId>
     <artifactId>mathematicallatexhelper</artifactId>
-    <version>2.0</version>
+    <version>2.1</version>
     <name>mathematicallatexhelper</name>
     <prerequisites>
         <maven>3</maven>
@@ -49,19 +49,16 @@
 
         <dependency>
             <groupId>com.github.chungkwong</groupId>
-            <artifactId>MathOCR</artifactId>
+            <artifactId>mathocr</artifactId>
             <version>0.0.3</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/mathocr-0.0.3.jar</systemPath>
         </dependency>
 
         <dependency>
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>
             <version>1.1.3</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/jai-core-1.1.3.jar</systemPath>
         </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.icepdf.os/icepdf-core -->
         <dependency>
             <groupId>org.icepdf.os</groupId>
@@ -99,6 +96,44 @@
             </resource>
         </resources>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>2.5.2</version>
+                <executions>
+                    <execution>
+                        <id>1</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <groupId>com.github.chungkwong</groupId>
+                            <artifactId>mathocr</artifactId>
+                            <version>0.0.3</version>
+                            <file>${basedir}/lib/mathocr-0.0.3.jar</file>
+                            <packaging>jar</packaging>
+                        </configuration>
+
+                    </execution>
+                    <execution>
+                        <id>2</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <groupId>javax.media</groupId>
+                            <artifactId>jai_core</artifactId>
+                            <version>1.1.3</version>
+
+                            <file>${basedir}/lib/jai_core-1.1.3.jar</file>
+                            <packaging>jar</packaging>
+                        </configuration>
+
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -158,12 +193,12 @@
                                 <minVersion>${maven.compiler.target}.0</minVersion>
                             </jre>
                             <versionInfo>
-                                <fileVersion>1.0.0.0</fileVersion>
+                                <fileVersion>${project.version}.0.0</fileVersion>
                                 <txtFileVersion>${project.version}</txtFileVersion>
                                 <fileDescription>${project.name}</fileDescription>
-                                <copyright>2017 Moritz Flöter</copyright>
-                                <productVersion>1.0.0.0</productVersion>
-                                <txtProductVersion>1.0.0.0</txtProductVersion>
+                                <copyright>2017-2019 Moritz Flöter</copyright>
+                                <productVersion>${project.version}.0.0</productVersion>
+                                <txtProductVersion>${project.version}.0.0</txtProductVersion>
                                 <productName>${project.name}</productName>
                                 <companyName>moritzf.de</companyName>
                                 <internalName>${project.name}</internalName>

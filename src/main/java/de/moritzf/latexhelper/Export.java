@@ -130,12 +130,16 @@ public class Export {
                 new DefaultStyle(), styles);
         SimpleKeyValues kvs = new SimpleKeyValues();
         TeXFormula teXFormula = new TeXFormula(expression);
-        TeXIcon teXIcon = teXFormula.createTeXIcon(TeXConstants.STYLE_DISPLAY, 30);
+
+        //Use the same font size as gutenberg uses
+        TeXIcon teXIcon = teXFormula.createTeXIcon(TeXConstants.STYLE_DISPLAY, 14f);
 
         try {
             ITextContext iTextContext = new ITextContext(kvs, styles).open(file);
             Document document = iTextContext.getDocument();
-            document.setPageSize(new com.itextpdf.text.Rectangle(teXIcon.getIconWidth() * 0.5f, teXIcon.getIconHeight() * 0.5f));
+
+            //use the rendered texIcon to define how big the pdf file must be
+            document.setPageSize(new com.itextpdf.text.Rectangle(teXIcon.getIconWidth(), teXIcon.getIconHeight()));
             document.setMargins(0, 0, 0, 0);
             document.newPage();
             SourceCodeLaTeXExtension extension = new SourceCodeLaTeXExtension(pygmentsAdapter);

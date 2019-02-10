@@ -99,7 +99,7 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
                         }
                     }
                     if (!success) {
-                        System.out.println("recoginizing with ocr for pdf");
+                        System.out.println("recognizing with ocr for pdf");
                         image = toBufferedImage(droppedFiles.get(0));
                         String latex = BatchProcessor.recognizeFormula(image);
                         if (latex != null && !latex.isEmpty()) {
@@ -174,6 +174,12 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
                         String latex = reader.getInfo().get("latex");
                         if (latex != null && !latex.isEmpty()) {
                             this.setText(latex);
+                        } else {
+                            image = toBufferedImage(droppedFiles.get(0));
+                            latex = BatchProcessor.recognizeFormula(image);
+                            if (latex != null && !latex.isEmpty()) {
+                                this.setText(latex);
+                            }
                         }
                     } catch (UnsupportedFlavorException | IOException ex) {
                         // nothing to do here

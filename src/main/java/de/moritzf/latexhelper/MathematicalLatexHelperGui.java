@@ -17,6 +17,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.nio.file.Path;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -52,7 +53,7 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
     /**
      * The btn save.
      */
-    private JButton btnSave = new JButton("Save to user home");
+    private JButton btnSave = new JButton("Save");
 
     /**
      * The btn copy.
@@ -193,7 +194,7 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
     public void actionPerformed(ActionEvent e) {
         if (e.getSource().equals(this.btnSave)) {
             try {
-                Export.save(this.latexSource.getText());
+                 Path path = Export.save(this.latexSource.getText());
 
                 Timer timer = new Timer(3000, new ActionListener() {
                     @Override
@@ -202,7 +203,7 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
                     }
                 });
                 MathematicalLatexHelperGui.this.render("\\text{Saved to folder: "
-                        + FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath() + " }");
+                        + path.toAbsolutePath().toString() + " }");
                 timer.setRepeats(false); // Only execute once
                 timer.start();
             } catch (Exception exception) {

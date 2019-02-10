@@ -20,6 +20,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -57,7 +58,7 @@ public class Export {
     /**
      * The constant USER_HOME.
      */
-    public static final String USER_HOME = FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath();
+    public static final Path USER_HOME = FileSystemView.getFileSystemView().getHomeDirectory().toPath();
 
     /**
      * Sets the clipboard. Renders the LaTeX-expression and stores an image in
@@ -80,14 +81,21 @@ public class Export {
      * @param latexSource the latex source
      * @throws IOException the io exception
      */
-    public static void save(String latexSource) throws IOException {
+    public static Path save(String latexSource) throws IOException {
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
         Calendar cal = Calendar.getInstance();
         String date = dateFormat.format(cal.getTime());
-        generatePng(latexSource, new File(USER_HOME + "/LaTeX-Rendering_" + date + ".png"));
-        generatePdf(latexSource, new File(USER_HOME + "/LaTeX-Rendering_" + date + ".pdf"));
 
+        Path path = USER_HOME;
+
+        if (path.resolve("Desktop").toFile().exists()) {
+            path = path.resolve("Desktop");
+        }
+        generatePng(latexSource, path.resolve("LaTeX-Rendering_" + date + ".png").toFile());
+        generatePdf(latexSource, path.resolve("LaTeX-Rendering_" + date + ".pdf").toFile());
+
+        return path;
 
     }
 

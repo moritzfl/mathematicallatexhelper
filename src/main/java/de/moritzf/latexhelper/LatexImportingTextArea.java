@@ -21,15 +21,18 @@ import java.util.List;
 
 /**
  * Text area that can work with images that have content hidden by steganography. If such content is detected, it
- * is pasted into the textarea as text.
+ * is pasted into the textarea as text. Will also work with pdf-files that contain the rendered latex expression
+ * within their header information.
+ *
+ *  @author Moritz Floeter
  */
-public class SteganographyTextArea extends JTextArea implements KeyListener {
+public class LatexImportingTextArea extends JTextArea implements KeyListener {
 
     /**
      * Instantiates a new Steganography text area.
      */
-    public SteganographyTextArea() {
-        SteganographyTextArea thisTextArea = this;
+    public LatexImportingTextArea() {
+        LatexImportingTextArea thisTextArea = this;
         this.addKeyListener(this);
         this.setDropTarget(new DropTarget() {
             public synchronized void drop(DropTargetDropEvent evt) {
@@ -148,7 +151,7 @@ public class SteganographyTextArea extends JTextArea implements KeyListener {
     }
 
     /**
-     * Converts a given Image into a BufferedImage
+     * Converts a given Image into a BufferedImage.
      *
      * @param img The Image to be converted
      * @return The converted BufferedImage

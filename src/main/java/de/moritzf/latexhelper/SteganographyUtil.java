@@ -8,11 +8,12 @@ import java.awt.image.DataBufferByte;
 import javax.swing.JOptionPane;
 
 /**
- * Class SteganographyUtil
+ * Utility class to handle the encoding and decoding of text hidden in images.
  *
  * modified implementation taken from the following source:
  * https://www.dreamincode.net/forums/topic/27950-steganography/
  *
+ * @author Moritz Floeter
  */
 public class SteganographyUtil {
 
@@ -27,6 +28,7 @@ public class SteganographyUtil {
      *
      * @param original The name of the image to modify
      * @param message  The text to hide in the image
+     * @return the buffered image
      */
     public static BufferedImage encode(BufferedImage original, String message) {
         //user space is not necessary for Encrypting
@@ -40,6 +42,7 @@ public class SteganographyUtil {
      * Extract text from image
      *
      * @param image the image
+     * @return the string
      */
     public static String decode(BufferedImage image) {
         byte[] decode;

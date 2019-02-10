@@ -69,10 +69,15 @@ public class Export {
      */
     public static void setClipboardAsImage(String expression) {
         BufferedImage image = renderImageFromExpression(expression);
-        ImageSelection imgSel = new ImageSelection(image);
+        ImageTransferable imgSel = new ImageTransferable(image);
         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(imgSel, null);
     }
 
+    /**
+     * Set the clipboard to a pdf-file containing the LaTeX expression.
+     *
+     * @param expression the expression
+     */
     public static void setClipboardAsPdf(String expression) {
         try {
             File file = File.createTempFile("clipboard", ".pdf");
@@ -98,10 +103,11 @@ public class Export {
     }
 
     /**
-     * Saves a latex expression as a rendered png file in the folder from which
-     * the software was started.
+     * Saves a latex expression as a rendered png. Tries to use the Desktop-folder. If the Desktop-Folder can not
+     * be found, it uses the current users home directory.
      *
      * @param latexSource the latex source
+     * @return the path
      * @throws IOException the io exception
      */
     public static Path save(String latexSource) throws IOException {
@@ -122,7 +128,15 @@ public class Export {
 
     }
 
-    public static void generatePdf(String expression, File file) throws IOException {
+    /**
+     * Generates pdf containing the rendered latex-expression. The pdf is a single page document with the
+     * page being sized according to the space that the rendered expression takes up.
+     *
+     * @param expression the latex expression
+     * @param file       the file
+     * @throws IOException the io exception
+     */
+    private static void generatePdf(String expression, File file) throws IOException {
 
         Styles styles = new Styles().initDefaults();
         PygmentsAdapter pygmentsAdapter = new PygmentsAdapter(
@@ -187,7 +201,7 @@ public class Export {
     }
 
 
-    private static class ImageSelection implements Transferable {
+    private static class ImageTransferable implements Transferable {
 
         /**
          * The image.
@@ -199,7 +213,7 @@ public class Export {
          *
          * @param image the image
          */
-        public ImageSelection(Image image) {
+        public ImageTransferable(Image image) {
             this.image = image;
         }
 
@@ -239,6 +253,9 @@ public class Export {
 
     }
 
+    /**
+     * The type File transferable.
+     */
     public static class FileTransferable implements Transferable {
 
         /**
@@ -266,7 +283,7 @@ public class Export {
         /**
          * Adds a file for the transfer.
          *
-         * @param f
+         * @param f the f
          */
         public void addFile(File f) {
             files.add(f);

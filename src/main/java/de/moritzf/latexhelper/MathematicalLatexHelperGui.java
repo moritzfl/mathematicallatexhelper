@@ -37,36 +37,35 @@ import org.scilab.forge.jlatexmath.TeXIcon;
  */
 public class MathematicalLatexHelperGui extends JFrame implements ActionListener, DocumentListener {
     /**
-     * The latex source.
+     * The text area holding the latex source code that is to be rendered.
      */
     private JTextArea latexSource;
 
     private UndoManager undoManager;
 
     /**
-     * The btn save.
+     * The save button.
      */
     private JButton btnSave = new JButton("Save");
 
     /**
-     * The btn copy.
+     * The copy button for pdfs.
      */
     private JButton btnCopyPdf = new JButton("Copy pdf");
 
     /**
-     * The btn copy.
+     * The copy button for images.
      */
     private JButton btnCopyImage = new JButton("Copy image");
 
     /**
-     * The drawing area.
+     * The drawing area for the rendered result.
      */
     private JLabel drawingArea = new JLabel("");
 
 
-    private static Font getFontForTextArea() {
-        return new Font("Courier", Font.PLAIN, 16);
-    }
+    private static final Font textAreaFont = new Font("Courier", Font.PLAIN, 16);
+
 
     /**
      * Instantiates a new gui.
@@ -75,9 +74,9 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
         super("Mathematical LaTeX Helper");
         Container content = this.getContentPane();
         content.setLayout(new GridLayout(2, 1));
-        this.latexSource = new SteganographyTextArea();
+        this.latexSource = new LatexImportingTextArea();
 
-        this.latexSource.setFont(getFontForTextArea());
+        this.latexSource.setFont(textAreaFont);
 
         initUndoRedoFunctionality();
 

@@ -2,12 +2,11 @@ package de.moritzf.latexhelper;
 
 
 import com.itextpdf.text.pdf.PdfReader;
+import mathpix.MathPixUtil;
+import mathpix.MathpixSettings;
+import mathpix.api.response.DetectionResult;
 import net.sf.mathocr.BatchProcessor;
-import org.icepdf.core.exceptions.PDFException;
-import org.icepdf.core.exceptions.PDFSecurityException;
-import org.icepdf.core.pobjects.Document;
-import org.icepdf.core.pobjects.Page;
-import org.icepdf.core.util.GraphicsRenderingHints;
+
 import org.scilab.forge.jlatexmath.TeXFormula;
 
 import javax.imageio.ImageIO;
@@ -22,11 +21,13 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
+
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Text area that can work with images that have content hidden by steganography. If such content is detected, it
@@ -36,6 +37,8 @@ import java.util.List;
  * @author Moritz Floeter
  */
 public class LatexImportingTextArea extends JTextArea implements KeyListener {
+
+    private static final Logger LOGGER = Logger.getLogger(LatexImportingTextArea.class.getName());
 
     /**
      * Instantiates a new Steganography text area.
@@ -51,92 +54,116 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
 
     private void handleDrop(DropTargetDropEvent evt) {
         if (evt.getTransferable().isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-            boolean success = false;
+            evt.acceptDrop(DnDConstants.ACTION_COPY);
+            List<File> droppedFiles = null;
             try {
-                evt.acceptDrop(DnDConstants.ACTION_COPY);
-                List<File> droppedFiles = (List<File>)
-                        evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
-                if (droppedFiles.size() == 1) {
-                    System.out.println("recognizing pdf with steganography");
-                    BufferedImage image = ImageIO.read(droppedFiles.get(0));
-                    String hiddenText = SteganographyUtil.decode(image);
-                    try {
-                        //Try to create a tex formula to check whether a valid latex expression has been recovered
-                        new TeXFormula(hiddenText);
-                        if (hiddenText != null && !hiddenText.isEmpty()) {
-                            this.setText(hiddenText);
-                            success = true;
-                        }
-                    } catch (Exception e) {
-
-                    }
-
-
-                    if (!success) {
-                        System.out.println("recognizing pdf with header");
-                        PdfReader reader;
-                        try {
-                            reader = new PdfReader(droppedFiles.get(0).getAbsolutePath());
-                            String latex = reader.getInfo().get("latex");
-                            System.out.println(latex != null && !latex.isEmpty());
-                            if (latex != null && !latex.isEmpty()) {
-                                this.setText(latex);
-                                success = true;
-                            }
-                        } catch (IOException e) {
-                            // nothing to do
-                        }
-                    }
-
-                    if (!success && image != null) {
-                        System.out.println("recognizing with ocr for image");
-
-                        String latex = BatchProcessor.recognizeFormula(image);
-                        if (latex != null && !latex.isEmpty()) {
-                            this.setText(latex);
-                            success = true;
-                        }
-                    }
-                    if (!success) {
-                        System.out.println("recognizing with ocr for pdf");
-                        image = toBufferedImage(droppedFiles.get(0));
-                        String latex = BatchProcessor.recognizeFormula(image);
-                        if (latex != null && !latex.isEmpty()) {
-                            this.setText(latex);
-                        }
-                    }
-
+                try {
+                    droppedFiles = (List<File>)
+                            evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                } catch (UnsupportedFlavorException e) {
+                    // does not happen, was checked a couple of lines earlier
                 }
-            } catch (UnsupportedFlavorException e) {
-                e.printStackTrace();
+
+                File droppedFile = droppedFiles.get(0);
+
+                if (ImageFileUtil.isImageFile(droppedFile)) {
+                    Image image = ImageIO.read(droppedFile);
+                    String latex = extractFromImage(toBufferedImage(image));
+                    if (latex != null && !latex.isEmpty()) {
+                        this.setText(latex);
+                    }
+                } else if (ImageFileUtil.isPdf(droppedFile)) {
+                    String latex = extractFromPdf(droppedFile);
+                    if (latex != null && !latex.isEmpty()) {
+                        this.setText(latex);
+                    }
+                }
+
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.log(Level.SEVERE, "Could not read file", e);
             }
         } else if (evt.getTransferable().isDataFlavorSupported(DataFlavor.imageFlavor)) {
             BufferedImage image;
             try {
-                image = toBufferedImage((Image) evt.getTransferable().getTransferData(DataFlavor.imageFlavor));
                 try {
-                    if (image != null) {
-                        String text = SteganographyUtil.decode(image);
-                        new TeXFormula(text);
-                        if (text != null && !text.isEmpty()) {
-                            this.setText(text);
 
-                        }
-                    }
-                } catch (Exception e) {
-                    String latex = BatchProcessor.recognizeFormula(image);
+                    image = toBufferedImage((Image) evt.getTransferable().getTransferData(DataFlavor.imageFlavor));
+
+                    String latex = extractFromImage(toBufferedImage(image));
                     if (latex != null && !latex.isEmpty()) {
                         this.setText(latex);
-
                     }
-
+                } catch (UnsupportedFlavorException e) {
+                    // does not happen, was checked a couple of lines earlier
                 }
-            } catch (UnsupportedFlavorException | IOException e) {
-                e.printStackTrace();
+
+
+            } catch (IOException exc) {
+                LOGGER.log(Level.SEVERE, "Could not read image from clipboard");
             }
         }
+    }
+
+    private String extractFromPdf(File droppedFile) {
+        LOGGER.log(Level.INFO, "Extracting text from pdf");
+        PdfReader reader = null;
+        String latex = null;
+        try {
+            reader = new PdfReader(droppedFile.getAbsolutePath());
+            latex = reader.getInfo().get("latex");
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Could not read pdf", e);
+        }
+
+        if (latex == null || latex.isEmpty()) {
+            Image image = ImageFileUtil.pdfToImage(droppedFile);
+            latex = extractFromImage(toBufferedImage(image));
+        } else {
+            LOGGER.log(Level.INFO, "Got result from latex attribute in pdf header");
+        }
+
+        return latex;
+    }
+
+    private String extractFromImage(BufferedImage image) {
+        LOGGER.log(Level.INFO, "Extracting text from image");
+        String latex = null;
+        if (image != null) {
+
+            LOGGER.log(Level.INFO, "Using steganography");
+            String text = SteganographyUtil.decode(image);
+
+            // new TeXFormula throws exception if the text used is an  invalid LaTeX expression
+            if (text != null && !text.isEmpty()) {
+                try {
+                    new TeXFormula(text);
+                    latex = text;
+                } catch (Exception e) {
+                    latex = null;
+                }
+            }
+
+            //If Steganography did not work, try with OCR
+            if (latex == null) {
+                LOGGER.log(Level.INFO, "Using OCR");
+                if (MathpixSettings.isConfigured()) {
+                    DetectionResult result = MathPixUtil.getLatex(image);
+                    if (result != null && result.getError().isEmpty() && !result.getLatex().isEmpty()) {
+                        LOGGER.log(Level.INFO, "Got OCR result using MathPix online API");
+                        latex = result.getLatex().replace(" ", "");
+                    } else {
+                        LOGGER.log(Level.INFO, "Got OCR result using MathOCR library");
+                        latex = BatchProcessor.recognizeFormula(image);
+                    }
+                } else {
+                    LOGGER.log(Level.INFO, "Got OCR result using MathOCR library");
+                    latex = BatchProcessor.recognizeFormula(image);
+                }
+
+            }
+        }
+
+        return latex;
     }
 
     @Override
@@ -149,17 +176,9 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
         if ((evt.getKeyCode() == KeyEvent.VK_V) && ((evt.getModifiers() & Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()) != 0)) {
             BufferedImage image = getImageFromClipboard();
             if (image != null) {
-                try {
-                    String text = SteganographyUtil.decode(image);
-                    new TeXFormula(text);
-                    if (text != null && !text.isEmpty()) {
-                        this.setText(text);
-                    }
-                } catch (Exception exception) {
-                    String latex = BatchProcessor.recognizeFormula(image);
-                    if (latex != null && !latex.isEmpty()) {
-                        this.setText(latex);
-                    }
+                String latex = extractFromImage(image);
+                if (latex != null && !latex.isEmpty()) {
+                    this.setText(latex);
                 }
             } else {
                 Transferable transferable = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
@@ -168,16 +187,19 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
                     try {
                         List<File> droppedFiles = (List<File>)
                                 transferable.getTransferData(DataFlavor.javaFileListFlavor);
-
-                        PdfReader reader = new PdfReader(droppedFiles.get(0).getAbsolutePath());
-                        String latex = reader.getInfo().get("latex");
-                        if (latex != null && !latex.isEmpty()) {
-                            this.setText(latex);
-                        } else {
-                            image = toBufferedImage(droppedFiles.get(0));
-                            latex = BatchProcessor.recognizeFormula(image);
+                        File droppedFile = droppedFiles.get(0);
+                        if (ImageFileUtil.isImageFile(droppedFile)) {
+                            image = ImageIO.read(droppedFile);
+                            String latex = extractFromImage(toBufferedImage(image));
                             if (latex != null && !latex.isEmpty()) {
                                 this.setText(latex);
+                                evt.consume();
+                            }
+                        } else if (ImageFileUtil.isPdf(droppedFile)) {
+                            String latex = extractFromPdf(droppedFile);
+                            if (latex != null && !latex.isEmpty()) {
+                                this.setText(latex);
+                                evt.consume();
                             }
                         }
                     } catch (UnsupportedFlavorException | IOException ex) {
@@ -251,39 +273,4 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
     }
 
 
-    private static BufferedImage toBufferedImage(File pdf) {
-        // open the file
-        Document document = new Document();
-        try {
-            document.setFile(pdf.getAbsolutePath());
-        } catch (PDFException ex) {
-            System.out.println("Error parsing PDF document " + ex);
-        } catch (PDFSecurityException ex) {
-            System.out.println("Error encryption not supported " + ex);
-        } catch (FileNotFoundException ex) {
-            System.out.println("Error file not found " + ex);
-        } catch (IOException ex) {
-            System.out.println("Error IOException " + ex);
-        }
-
-        // save page captures to file.
-        float scale = 1.0f;
-        float rotation = 0f;
-
-        // Paint each pages content to an image and
-        // write the image to file
-
-        BufferedImage image = null;
-        try {
-            image = (BufferedImage) document.getPageImage(
-                    0, GraphicsRenderingHints.PRINT, Page.BOUNDARY_CROPBOX, rotation, scale);
-        } catch (InterruptedException e) {
-            //does not happen
-        }
-        RenderedImage rendImage = image;
-        image.flush();
-        // clean up resources
-        document.dispose();
-        return image;
-    }
 }

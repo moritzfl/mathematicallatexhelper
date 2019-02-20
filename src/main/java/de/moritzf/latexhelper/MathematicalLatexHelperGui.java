@@ -274,6 +274,8 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
      */
     public static void main(String[] args) {
         WindowFunctions.setSystemWindowDesign();
+        // Set system property for more speed as recommended for apache pdfbox
+        System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider");
         new MathematicalLatexHelperGui();
     }
 

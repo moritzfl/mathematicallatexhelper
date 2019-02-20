@@ -1,17 +1,14 @@
 package de.moritzf.latexhelper;
 
-import org.icepdf.core.exceptions.PDFException;
-import org.icepdf.core.exceptions.PDFSecurityException;
-import org.icepdf.core.pobjects.Document;
-import org.icepdf.core.pobjects.Page;
-import org.icepdf.core.util.GraphicsRenderingHints;
+import org.apache.pdfbox.pdmodel.PDDocument;
+
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,8 +18,7 @@ public class ImageFileUtil {
 
     public static boolean isImageFile(File file) {
         try {
-            ImageIO.read(file).toString();
-            return true;
+            return ImageIO.read(file) != null;
         } catch (Exception e) {
             return false;
         }
@@ -32,51 +28,42 @@ public class ImageFileUtil {
      * Test if the data in the given byte array represents a PDF file.
      */
     public static boolean isPdf(File file) throws IOException {
-        boolean isPdf = true;
-        Document document = new Document();
-        try {
-            document.setFile(file.getAbsolutePath());
-        } catch (PDFException | PDFSecurityException ex) {
-          isPdf = false;
+        byte[] data = new byte[5];
+        InputStream is = new FileInputStream(file);
+
+        boolean isPdf = false;
+        if (is.read(data) != data.length) {
+            LOGGER.log(Level.INFO, "The file used does appear to be corrupted.");
+        } else {
+            isPdf = (data[0] == 0x25 &&// %
+                    data[1] == 0x50 && // P
+                    data[2] == 0x44 && // D
+                    data[3] == 0x46 && // F
+                    data[4] == 0x2D);
         }
+
+
+        is.close();
+
         return isPdf;
     }
 
     public static BufferedImage pdfToImage(File pdf) {
-        // open the file
-        Document document = new Document();
-        try {
-            document.setFile(pdf.getAbsolutePath());
-        } catch (PDFException ex) {
-            LOGGER.log(Level.SEVERE, "Error parsing PDF document " + ex);
-        } catch (PDFSecurityException ex) {
-            LOGGER.log(Level.SEVERE, "Error encryption not supported " + ex);
-        } catch (FileNotFoundException ex) {
-            LOGGER.log(Level.SEVERE, "Error file not found " + ex);
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, "Error IOException " + ex);
-        }
-
-        // save page captures to file.
-        float scale = 1.0f;
-        float rotation = 0f;
-
-        // Paint each pages content to an image and
-        // write the image to file
-
         BufferedImage image = null;
-        try {
-            image = (BufferedImage) document.getPageImage(
-                    0, GraphicsRenderingHints.PRINT, Page.BOUNDARY_CROPBOX, rotation, scale);
-        } catch (InterruptedException e) {
-            //does not happen unless file its corrupted and then it does not matter.
+        if (pdf.exists()) {
+            try {
+                PDDocument document = PDDocument.load(pdf);
+                PDFRenderer pdfRenderer = new PDFRenderer(document);
+
+                //Only convert first page
+                image = pdfRenderer.renderImageWithDPI(0, 300, ImageType.RGB);
+                document.close();
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "Could not convert pdf to image. Perhaps the file used was not a valid pdf file.");
+            }
         }
-        RenderedImage rendImage = image;
-        image.flush();
-        // clean up resources
-        document.dispose();
+
         return image;
     }
-
 
 }

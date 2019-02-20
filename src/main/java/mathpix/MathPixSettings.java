@@ -7,12 +7,12 @@ import java.util.Properties;
 /**
  * Created by Admin on 2/1/2017.
  */
-public class MathpixSettings {
+public class MathPixSettings {
 
     private static Properties properties = null;
     private static boolean failedToLoad = false;
 
-    private MathpixSettings() {
+    private MathPixSettings() {
 
     }
 
@@ -24,7 +24,7 @@ public class MathpixSettings {
 
     public static void init() {
         if (properties == null && !failedToLoad) {
-            InputStream stream = MathpixSettings.class.getResourceAsStream("mathpix.properties");
+            InputStream stream = MathPixSettings.class.getResourceAsStream("mathpix.properties");
             try {
                 properties = new Properties();
                 properties.load(stream);

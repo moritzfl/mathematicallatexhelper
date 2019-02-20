@@ -17,7 +17,8 @@ MAthematical LaTeX Helper makes use of the following work by other authors (and 
 
 - [JLaTeXMath](https://github.com/opencollab/jlatexmath)
 - [iTextPdf](https://github.com/itext/itextpdf)
+- [PdfBox](https://pdfbox.apache.org)
 - [MathOCR](https://github.com/chungkwong/MathOCR)
+- [MathPix API](https://docs.mathpix.com)
 - [Gutenberg](https://github.com/Arnauld/gutenberg)
-- [icepdf](http://res.icesoft.org/docs/icepdf/latest/core/index.html)
 - [Steganography Tutorial](https://www.dreamincode.net/forums/topic/27950-steganography/)

@@ -3,7 +3,7 @@ package de.moritzf.latexhelper;
 
 import com.itextpdf.text.pdf.PdfReader;
 import mathpix.MathPixUtil;
-import mathpix.MathpixSettings;
+import mathpix.MathPixSettings;
 import mathpix.api.response.DetectionResult;
 import net.sf.mathocr.BatchProcessor;
 
@@ -111,13 +111,15 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
         try {
             reader = new PdfReader(droppedFile.getAbsolutePath());
             latex = reader.getInfo().get("latex");
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Could not read pdf", e);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Could not read pdf. Perhaps the file used was not a valid pdf file.");
         }
 
         if (latex == null || latex.isEmpty()) {
             Image image = ImageFileUtil.pdfToImage(droppedFile);
-            latex = extractFromImage(toBufferedImage(image));
+            if (image != null) {
+                latex = extractFromImage(toBufferedImage(image));
+            }
         } else {
             LOGGER.log(Level.INFO, "Got result from latex attribute in pdf header");
         }
@@ -146,7 +148,7 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
             //If Steganography did not work, try with OCR
             if (latex == null) {
                 LOGGER.log(Level.INFO, "Using OCR");
-                if (MathpixSettings.isConfigured()) {
+                if (MathPixSettings.isConfigured()) {
                     DetectionResult result = MathPixUtil.getLatex(image);
                     if (result != null && result.getError().isEmpty() && !result.getLatex().isEmpty()) {
                         LOGGER.log(Level.INFO, "Got OCR result using MathPix online API");
@@ -154,6 +156,10 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
                     } else {
                         LOGGER.log(Level.INFO, "Got OCR result using MathOCR library");
                         latex = BatchProcessor.recognizeFormula(image);
+                        // Cut away the $$ in beginning and end of latex string
+                        if (latex != null && latex.length() > 4 && latex.startsWith("$$") && latex.endsWith("$$")) {
+                            latex = latex.substring(2, latex.length() - 2);
+                        }
                     }
                 } else {
                     LOGGER.log(Level.INFO, "Got OCR result using MathOCR library");

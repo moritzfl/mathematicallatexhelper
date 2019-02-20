@@ -29,6 +29,7 @@
     </orderEntry>
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-simple:1.7.25" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.25" level="project" />
+    <orderEntry type="library" name="Maven: javax.activation:activation:1.1.1" level="project" />
     <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.8.5" level="project" />
     <orderEntry type="library" name="Maven: org.apache.pdfbox:pdfbox:2.0.13" level="project" />
     <orderEntry type="library" name="Maven: org.apache.pdfbox:fontbox:2.0.13" level="project" />
@@ -49,10 +50,6 @@
     <orderEntry type="library" name="Maven: com.google.guava:guava:17.0" level="project" />
     <orderEntry type="library" name="Maven: com.github.chungkwong:mathocr:0.0.3" level="project" />
     <orderEntry type="library" name="Maven: javax.media:jai_core:1.1.3" level="project" />
-    <orderEntry type="library" name="Maven: org.icepdf.os:icepdf-core:6.2.2" level="project" />
-    <orderEntry type="library" name="Maven: org.bouncycastle:bcprov-jdk15on:1.54" level="project" />
-    <orderEntry type="library" name="Maven: org.bouncycastle:bcprov-ext-jdk15on:1.54" level="project" />
-    <orderEntry type="library" name="Maven: org.bouncycastle:bcpkix-jdk15on:1.54" level="project" />
     <orderEntry type="library" name="Maven: org.scilab.forge:jlatexmath:1.0.7" level="project" />
     <orderEntry type="library" name="Maven: org.scilab.forge:jlatexmath-font-greek:1.0.7" level="project" />
     <orderEntry type="library" name="Maven: org.scilab.forge:jlatexmath-font-cyrillic:1.0.7" level="project" />

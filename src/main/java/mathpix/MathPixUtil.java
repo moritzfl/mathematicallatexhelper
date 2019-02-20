@@ -25,15 +25,15 @@ public class MathPixUtil {
     public static DetectionResult getLatex(Image image) {
         DetectionResult detectionResult;
         try {
-            String url = MathpixSettings.getBaseUrl();
+            String url = MathPixSettings.getBaseUrl();
             HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
 
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
             connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("app_id", MathpixSettings.getAppId());
+            connection.setRequestProperty("app_id", MathPixSettings.getAppId());
             connection.setRequestProperty("filename", "picture.jpg");
-            connection.setRequestProperty("app_key", MathpixSettings.getAppKey());
+            connection.setRequestProperty("app_key", MathPixSettings.getAppKey());
 
             OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
             String body = "{\"src\" : \"data:image/jpeg;base64, "

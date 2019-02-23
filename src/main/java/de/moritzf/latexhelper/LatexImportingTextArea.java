@@ -2,7 +2,6 @@ package de.moritzf.latexhelper;
 
 
 import com.itextpdf.text.pdf.PdfReader;
-import com.sun.media.jai.util.ImageUtil;
 import de.moritzf.latexhelper.util.ImageFileUtil;
 import de.moritzf.latexhelper.util.SteganographyUtil;
 import mathpix.MathPix;
@@ -28,7 +27,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;

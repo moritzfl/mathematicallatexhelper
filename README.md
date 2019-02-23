@@ -13,7 +13,7 @@ Technically this means that you could also feed it with formulas that were not r
 
 Mathematical LaTeX Helper is licensed under the terms of GPL3.
 
-MAthematical LaTeX Helper makes use of the following work by other authors (and further depends on their transitive dependencies):
+Mathematical LaTeX Helper makes use of the following work by other authors (and further depends on their transitive dependencies):
 
 - [JLaTeXMath](https://github.com/opencollab/jlatexmath)
 - [iTextPdf](https://github.com/itext/itextpdf)

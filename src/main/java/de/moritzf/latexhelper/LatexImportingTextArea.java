@@ -2,6 +2,7 @@ package de.moritzf.latexhelper;
 
 
 import com.itextpdf.text.pdf.PdfReader;
+import com.sun.media.jai.util.ImageUtil;
 import de.moritzf.latexhelper.util.ImageFileUtil;
 import de.moritzf.latexhelper.util.SteganographyUtil;
 import mathpix.MathPix;
@@ -27,6 +28,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -203,69 +205,53 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
     @Override
     public void keyPressed(KeyEvent evt) {
         if ((evt.getKeyCode() == KeyEvent.VK_V) && ((evt.getModifiers() & Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()) != 0)) {
-            BufferedImage image = getImageFromClipboard();
-            if (image != null) {
-                String latex = extractFromImage(image);
-                if (latex != null && !latex.isEmpty()) {
-                    this.setText(latex);
-                    evt.consume();
-                }
-            } else {
-                Transferable transferable = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
-                //Check if file is pasted and return an image
-                if (transferable != null && transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                    try {
-                        List<File> droppedFiles = (List<File>)
-                                transferable.getTransferData(DataFlavor.javaFileListFlavor);
-                        File droppedFile = droppedFiles.get(0);
-
-                        //handle image file
-                        if (ImageFileUtil.isImage(droppedFile)) {
-                            image = ImageIO.read(droppedFile);
-                            String latex = extractFromImage(ImageFileUtil.toBufferedImage(image));
-                            if (latex != null && !latex.isEmpty()) {
-                                this.setText(latex);
-                                evt.consume();
-                            }
-                            // handle pdf file
-                        } else if (ImageFileUtil.isPdf(droppedFile)) {
-                            String latex = extractFromPdf(droppedFile);
-                            if (latex != null && !latex.isEmpty()) {
-                                this.setText(latex);
-                                evt.consume();
-                            }
+            Image image = null;
+            Transferable transferable = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+            //Check if file is pasted and return an image
+            if (transferable != null && transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+                try {
+                    List<File> pastedFiles = (List<File>)
+                            transferable.getTransferData(DataFlavor.javaFileListFlavor);
+                    File pastedFile = pastedFiles.get(0);
+                    //handle image file
+                    if (ImageFileUtil.isImage(pastedFile)) {
+                        image = ImageIO.read(pastedFile);
+                        String latex = extractFromImage(ImageFileUtil.toBufferedImage(image));
+                        if (latex != null && !latex.isEmpty()) {
+                            this.setText(latex);
+                            evt.consume();
                         }
-                    } catch (UnsupportedFlavorException | IOException ex) {
-                        LOGGER.log(Level.WARNING, "The clipboard content is not compatible with MathematicalLatexHelper");
+                        // handle pdf file
+                    } else if (ImageFileUtil.isPdf(pastedFile)) {
+                        String latex = extractFromPdf(pastedFile);
+                        if (latex != null && !latex.isEmpty()) {
+                            this.setText(latex);
+                            evt.consume();
+                        }
                     }
+                } catch (UnsupportedFlavorException | IOException ex) {
+                    LOGGER.log(Level.WARNING, "The file in the clipboard is not compatible with MathematicalLatexHelper");
                 }
-
+            } else if (transferable != null && transferable.isDataFlavorSupported(DataFlavor.imageFlavor)) {
+                try {
+                    image = ImageFileUtil.toBufferedImage((Image) transferable.getTransferData(DataFlavor.imageFlavor));
+                    String latex = extractFromImage(ImageFileUtil.toBufferedImage(image));
+                    if (latex != null && !latex.isEmpty()) {
+                        this.setText(latex);
+                        evt.consume();
+                    }
+                } catch (UnsupportedFlavorException | IOException e) {
+                    LOGGER.log(Level.WARNING, "The image in the clipboard is not compatible with MathematicalLatexHelper");
+                }
             }
+
+
         }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
 
-    }
-
-    /**
-     * Gets image from clipboard. Returns null, if no image was in the clipboard
-     *
-     * @return the image from clipboard
-     */
-    public BufferedImage getImageFromClipboard() {
-        Transferable transferable = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
-        BufferedImage image = null;
-
-        if (transferable != null && transferable.isDataFlavorSupported(DataFlavor.imageFlavor)) {
-            try {
-                image = ImageFileUtil.toBufferedImage((Image) transferable.getTransferData(DataFlavor.imageFlavor));
-            } catch (UnsupportedFlavorException | IOException e) {
-                // nothing to do here
-            }
-        }
-        return image;
     }
 
 

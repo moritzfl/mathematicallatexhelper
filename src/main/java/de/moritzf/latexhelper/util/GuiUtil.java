@@ -11,7 +11,9 @@
  *         You should have received a copy of the GNU General Public License
  *         along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package de.moritzf.latexhelper;
+package de.moritzf.latexhelper.util;
+
+import de.moritzf.latexhelper.MathematicalLatexHelperGui;
 
 import java.awt.GraphicsDevice;
 import java.awt.MouseInfo;
@@ -24,12 +26,19 @@ import java.util.logging.Logger;
 import javax.swing.UIManager;
 
 /**
- * The Class WindowFunctions. This class provides certain functions for windows.
+ * The Class GuiUtil. This class provides certain functions for windows.
  * (see description of the methods in this class for more details)
  *
  * @author Moritz Floeter
  */
-public class WindowFunctions {
+public class GuiUtil {
+
+    /**
+     * Empty private constructor of GuiUtil
+     */
+    private GuiUtil() {
+        //prevents instances of GuiUtil
+    }
 
     /**
      * Centers the window passed to it.
@@ -50,6 +59,10 @@ public class WindowFunctions {
     public static final void setSystemWindowDesign() {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            if (OsUtil.getOperatingSystemType().equals(OsUtil.OSType.MacOS)) {
+                System.setProperty("apple.laf.useScreenMenuBar", "true");
+                System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Test");
+            }
         } catch (Exception e) {
             System.out.println("Could not set System LookAndFeel.");
             e.printStackTrace();

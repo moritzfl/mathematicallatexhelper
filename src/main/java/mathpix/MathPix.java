@@ -3,13 +3,13 @@ package mathpix;
 
 import com.google.gson.Gson;
 
+import de.moritzf.latexhelper.util.ImageFileUtil;
 import mathpix.api.response.DetectionResult;
 
 
 import javax.activation.MimeType;
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -18,10 +18,21 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MathPixUtil {
+/**
+ * Offers interaction with the MathPix-API.
+ *
+ * @author Moritz Floeter
+ */
+public class MathPix {
 
-    private static final Logger LOGGER = Logger.getLogger(MathPixUtil.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(MathPix.class.getName());
 
+    /**
+     * Gets a latex expression for an image.
+     *
+     * @param image the image
+     * @return the latex
+     */
     public static DetectionResult getLatex(Image image) {
         DetectionResult detectionResult;
         try {
@@ -65,7 +76,7 @@ public class MathPixUtil {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         String result = null;
         try {
-            ImageIO.write(toBufferedImage(image), "jpg", os);
+            ImageIO.write(ImageFileUtil.toBufferedImage(image), "jpg", os);
             byte[] encoded = Base64.getEncoder().encode(os.toByteArray());
             os.close();
             result = new String(encoded);
@@ -75,19 +86,5 @@ public class MathPixUtil {
         return result;
     }
 
-    private static BufferedImage toBufferedImage(Image img) {
-        if (img instanceof BufferedImage) {
-            return (BufferedImage) img;
-        }
-        BufferedImage bufferedImage = new BufferedImage(img.getWidth(null),
-                img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
 
-        // Draw the image on to the buffered image
-        Graphics2D bGr = bufferedImage.createGraphics();
-        bGr.drawImage(img, 0, 0, null);
-        bGr.dispose();
-
-        // Return the buffered image
-        return bufferedImage;
-    }
 }

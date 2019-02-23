@@ -1,4 +1,4 @@
-package de.moritzf.latexhelper;
+package de.moritzf.latexhelper.util;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 
@@ -6,17 +6,36 @@ import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 
 import java.io.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Utility class for handling files containing images and images themselves.
+ *
+ * @author Moritz Floeter
+ */
 public class ImageFileUtil {
+
+    /**
+     * Empty private constructor for ImageFileUtil
+     */
+    private ImageFileUtil(){
+        //Prevents instances of ImageFileUtil
+    }
 
     private static final Logger LOGGER = Logger.getLogger(ImageFileUtil.class.getName());
 
-    public static boolean isImageFile(File file) {
+    /**
+     * Tests if file is an image file.
+     *
+     * @param file the file
+     * @return true, if image
+     */
+    public static boolean isImage(File file) {
         try {
             return ImageIO.read(file) != null;
         } catch (Exception e) {
@@ -26,6 +45,10 @@ public class ImageFileUtil {
 
     /**
      * Test if the data in the given byte array represents a PDF file.
+     *
+     * @param file the file
+     * @return true, if pdf file
+     * @throws IOException the io exception
      */
     public static boolean isPdf(File file) throws IOException {
         byte[] data = new byte[5];
@@ -48,6 +71,12 @@ public class ImageFileUtil {
         return isPdf;
     }
 
+    /**
+     * Converts pdf to BufferedImage.
+     *
+     * @param pdf the pdf
+     * @return the buffered image
+     */
     public static BufferedImage pdfToImage(File pdf) {
         BufferedImage image = null;
         if (pdf.exists()) {
@@ -64,6 +93,29 @@ public class ImageFileUtil {
         }
 
         return image;
+    }
+
+    /**
+     * Converts a given Image to a BufferedImage. If the instance passed is already a BufferedImage, this
+     * will return the image unchanged.
+     *
+     * @param img the img
+     * @return the buffered image
+     */
+    public static BufferedImage toBufferedImage(Image img) {
+        if (img instanceof BufferedImage) {
+            return (BufferedImage) img;
+        }
+        BufferedImage bufferedImage = new BufferedImage(img.getWidth(null),
+                img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+        // Draw the image on to the buffered image
+        Graphics2D bGr = bufferedImage.createGraphics();
+        bGr.drawImage(img, 0, 0, null);
+        bGr.dispose();
+
+        // Return the buffered image
+        return bufferedImage;
     }
 
 }

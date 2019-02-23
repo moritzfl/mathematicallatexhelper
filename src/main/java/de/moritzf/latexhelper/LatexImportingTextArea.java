@@ -2,7 +2,9 @@ package de.moritzf.latexhelper;
 
 
 import com.itextpdf.text.pdf.PdfReader;
-import mathpix.MathPixUtil;
+import de.moritzf.latexhelper.util.ImageFileUtil;
+import de.moritzf.latexhelper.util.SteganographyUtil;
+import mathpix.MathPix;
 import mathpix.MathPixSettings;
 import mathpix.api.response.DetectionResult;
 import net.sf.mathocr.BatchProcessor;
@@ -52,6 +54,11 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
         });
     }
 
+    /**
+     * Handle drop events when items are dropped to the gui.
+     *
+     * @param evt the DropTargetDropEvent
+     */
     private void handleDrop(DropTargetDropEvent evt) {
         if (evt.getTransferable().isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
             evt.acceptDrop(DnDConstants.ACTION_COPY);
@@ -66,9 +73,9 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
 
                 File droppedFile = droppedFiles.get(0);
 
-                if (ImageFileUtil.isImageFile(droppedFile)) {
+                if (ImageFileUtil.isImage(droppedFile)) {
                     Image image = ImageIO.read(droppedFile);
-                    String latex = extractFromImage(toBufferedImage(image));
+                    String latex = extractFromImage(ImageFileUtil.toBufferedImage(image));
                     if (latex != null && !latex.isEmpty()) {
                         this.setText(latex);
                     }
@@ -87,9 +94,9 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
             try {
                 try {
 
-                    image = toBufferedImage((Image) evt.getTransferable().getTransferData(DataFlavor.imageFlavor));
+                    image = ImageFileUtil.toBufferedImage((Image) evt.getTransferable().getTransferData(DataFlavor.imageFlavor));
 
-                    String latex = extractFromImage(toBufferedImage(image));
+                    String latex = extractFromImage(ImageFileUtil.toBufferedImage(image));
                     if (latex != null && !latex.isEmpty()) {
                         this.setText(latex);
                     }
@@ -104,21 +111,27 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
         }
     }
 
-    private String extractFromPdf(File droppedFile) {
+    /**
+     * Extract a latex expression from a given pdf file.
+     *
+     * @param pdfFile the dropped file
+     * @return the string
+     */
+    private String extractFromPdf(File pdfFile) {
         LOGGER.log(Level.INFO, "Extracting text from pdf");
         PdfReader reader = null;
         String latex = null;
         try {
-            reader = new PdfReader(droppedFile.getAbsolutePath());
+            reader = new PdfReader(pdfFile.getAbsolutePath());
             latex = reader.getInfo().get("latex");
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Could not read pdf. Perhaps the file used was not a valid pdf file.");
         }
 
         if (latex == null || latex.isEmpty()) {
-            Image image = ImageFileUtil.pdfToImage(droppedFile);
+            Image image = ImageFileUtil.pdfToImage(pdfFile);
             if (image != null) {
-                latex = extractFromImage(toBufferedImage(image));
+                latex = extractFromImage(ImageFileUtil.toBufferedImage(image));
             }
         } else {
             LOGGER.log(Level.INFO, "Got result from latex attribute in pdf header");
@@ -127,6 +140,12 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
         return latex;
     }
 
+    /**
+     * Extract a latex expression from an image.
+     *
+     * @param image the image
+     * @return the string
+     */
     private String extractFromImage(BufferedImage image) {
         LOGGER.log(Level.INFO, "Extracting text from image");
         String latex = null;
@@ -148,22 +167,26 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
             //If Steganography did not work, try with OCR
             if (latex == null) {
                 LOGGER.log(Level.INFO, "Using OCR");
+
+                //Try to use mathpix if it is configured
                 if (MathPixSettings.isConfigured()) {
-                    DetectionResult result = MathPixUtil.getLatex(image);
+                    DetectionResult result = MathPix.getLatex(image);
                     if (result != null && result.getError().isEmpty() && !result.getLatex().isEmpty()) {
                         LOGGER.log(Level.INFO, "Got OCR result using MathPix online API");
                         latex = result.getLatex().replace(" ", "");
-                    } else {
-                        LOGGER.log(Level.INFO, "Got OCR result using MathOCR library");
-                        latex = BatchProcessor.recognizeFormula(image);
-                        // Cut away the $$ in beginning and end of latex string
-                        if (latex != null && latex.length() > 4 && latex.startsWith("$$") && latex.endsWith("$$")) {
-                            latex = latex.substring(2, latex.length() - 2);
-                        }
+                        // If no result was obtained from mathpix, try with MathOCR
                     }
-                } else {
+                }
+
+                //If mathpix was not configured or didn't provide any results, fall back to MathOCR
+                if (latex == null) {
                     LOGGER.log(Level.INFO, "Got OCR result using MathOCR library");
                     latex = BatchProcessor.recognizeFormula(image);
+                    // Cut away the $$ in beginning and end of latex string
+                    if (latex != null && latex.length() > 4 && latex.startsWith("$$") && latex.endsWith("$$")) {
+                        latex = latex.substring(2, latex.length() - 2);
+
+                    }
                 }
 
             }
@@ -185,22 +208,26 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
                 String latex = extractFromImage(image);
                 if (latex != null && !latex.isEmpty()) {
                     this.setText(latex);
+                    evt.consume();
                 }
             } else {
                 Transferable transferable = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
-                //Check if file or image-file is pasted and return an image
+                //Check if file is pasted and return an image
                 if (transferable != null && transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
                     try {
                         List<File> droppedFiles = (List<File>)
                                 transferable.getTransferData(DataFlavor.javaFileListFlavor);
                         File droppedFile = droppedFiles.get(0);
-                        if (ImageFileUtil.isImageFile(droppedFile)) {
+
+                        //handle image file
+                        if (ImageFileUtil.isImage(droppedFile)) {
                             image = ImageIO.read(droppedFile);
-                            String latex = extractFromImage(toBufferedImage(image));
+                            String latex = extractFromImage(ImageFileUtil.toBufferedImage(image));
                             if (latex != null && !latex.isEmpty()) {
                                 this.setText(latex);
                                 evt.consume();
                             }
+                            // handle pdf file
                         } else if (ImageFileUtil.isPdf(droppedFile)) {
                             String latex = extractFromPdf(droppedFile);
                             if (latex != null && !latex.isEmpty()) {
@@ -209,7 +236,7 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
                             }
                         }
                     } catch (UnsupportedFlavorException | IOException ex) {
-                        // nothing to do here
+                        LOGGER.log(Level.WARNING, "The clipboard content is not compatible with MathematicalLatexHelper");
                     }
                 }
 
@@ -223,7 +250,7 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
     }
 
     /**
-     * Gets image from clipboard.
+     * Gets image from clipboard. Returns null, if no image was in the clipboard
      *
      * @return the image from clipboard
      */
@@ -231,51 +258,14 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
         Transferable transferable = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
         BufferedImage image = null;
 
-        //Check if file or image-file is pasted and return an image
-        if (transferable != null && transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+        if (transferable != null && transferable.isDataFlavorSupported(DataFlavor.imageFlavor)) {
             try {
-                List<File> droppedFiles = (List<File>)
-                        transferable.getTransferData(DataFlavor.javaFileListFlavor);
-                if (droppedFiles.size() == 1) {
-                    image = ImageIO.read(droppedFiles.get(0));
-                }
+                image = ImageFileUtil.toBufferedImage((Image) transferable.getTransferData(DataFlavor.imageFlavor));
             } catch (UnsupportedFlavorException | IOException e) {
-                e.printStackTrace();
-            }
-        } else if (transferable != null && transferable.isDataFlavorSupported(DataFlavor.imageFlavor)) {
-            try {
-                image = toBufferedImage((Image) transferable.getTransferData(DataFlavor.imageFlavor));
-            } catch (UnsupportedFlavorException | IOException e) {
-                // handle this as desired
+                // nothing to do here
             }
         }
         return image;
-    }
-
-    /**
-     * Converts a given Image into a BufferedImage.
-     *
-     * @param img The Image to be converted
-     * @return The converted BufferedImage
-     */
-    private static BufferedImage toBufferedImage(Image img) {
-        if (img instanceof BufferedImage) {
-            //This will work with steganography as the data is directly taken from the image.
-            return (BufferedImage) img;
-        }
-
-        // This conversion will not work with steganography as the image is repainted and loses its data.
-        // It is however what you would expect this function to deliver as output :P
-        BufferedImage bimage = new BufferedImage(img.getWidth(null),
-                img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-
-        // Draw the image on to the buffered image
-        Graphics2D bGr = bimage.createGraphics();
-        bGr.drawImage(img, 0, 0, null);
-        bGr.dispose();
-
-        // Return the buffered image
-        return bimage;
     }
 
 

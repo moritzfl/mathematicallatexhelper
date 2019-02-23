@@ -35,6 +35,7 @@ import javax.swing.filechooser.FileSystemView;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 
+import de.moritzf.latexhelper.util.SteganographyUtil;
 import gutenberg.itext.ITextContext;
 import gutenberg.itext.PygmentsAdapter;
 import gutenberg.itext.Styles;
@@ -49,7 +50,7 @@ import org.scilab.forge.jlatexmath.TeXIcon;
 
 
 /**
- * The Class Export.
+ * This class handles the export of the rendered latex expression to clipboard or filesystem.
  *
  * @author Moritz Floeter
  */
@@ -121,6 +122,7 @@ public class Export {
         if (path.resolve("Desktop").toFile().exists()) {
             path = path.resolve("Desktop");
         }
+
         generatePng(latexSource, path.resolve("LaTeX-Rendering_" + date + ".png").toFile());
         generatePdf(latexSource, path.resolve("LaTeX-Rendering_" + date + ".pdf").toFile());
 
@@ -280,10 +282,10 @@ public class Export {
         /**
          * Adds a file for the transfer.
          *
-         * @param f the f
+         * @param file the file
          */
-        public void addFile(File f) {
-            files.add(f);
+        public void addFile(File file) {
+            files.add(file);
         }
 
 

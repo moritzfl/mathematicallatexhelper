@@ -1,4 +1,4 @@
-package de.moritzf.latexhelper;
+package de.moritzf.latexhelper.util;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;

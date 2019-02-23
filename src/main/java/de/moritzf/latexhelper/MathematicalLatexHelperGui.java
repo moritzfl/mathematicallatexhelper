@@ -17,15 +17,20 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.nio.file.Path;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 
+import de.moritzf.latexhelper.util.GuiUtil;
+import de.moritzf.latexhelper.util.OsUtil;
+import mathpix.MathPixSettings;
 import org.scilab.forge.jlatexmath.TeXConstants;
 import org.scilab.forge.jlatexmath.TeXFormula;
 import org.scilab.forge.jlatexmath.TeXIcon;
@@ -42,6 +47,8 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
     private JTextArea latexSource;
 
     private UndoManager undoManager;
+
+    private JMenuItem settingsItem = new JMenuItem("Image Import Settings");
 
     /**
      * The save button.
@@ -72,6 +79,22 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
      */
     public MathematicalLatexHelperGui() {
         super("Mathematical LaTeX Helper");
+
+        //Create the menu bar.
+        JMenuBar menuBar = new JMenuBar();
+
+        //Build the first menu.
+        JMenu fileMenu = new JMenu("File");
+
+
+        fileMenu.getAccessibleContext().setAccessibleDescription(
+                "File menu");
+        menuBar.add(fileMenu);
+        this.setJMenuBar(menuBar);
+
+        fileMenu.add(settingsItem);
+        settingsItem.addActionListener(this);
+
         Container content = this.getContentPane();
         content.setLayout(new GridLayout(2, 1));
         this.latexSource = new LatexImportingTextArea();
@@ -91,6 +114,7 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
         editorArea.add(btnPnl, BorderLayout.SOUTH);
 
         content.add(editorArea);
+        drawingArea.setBackground(Color.WHITE);
         content.add(new JScrollPane(this.drawingArea));
 
         // adding Listeners
@@ -104,8 +128,10 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
         this.setSize(500, 500);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        WindowFunctions.centerWindow(this);
-        WindowFunctions.enableOSXFullscreen(this);
+        GuiUtil.centerWindow(this);
+        if (OsUtil.getOperatingSystemType().equals(OsUtil.OSType.MacOS)) {
+            GuiUtil.enableOSXFullscreen(this);
+        }
 
         this.setVisible(true);
     }
@@ -192,27 +218,7 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource().equals(this.btnSave)) {
-            try {
-                Path path = Export.save(this.latexSource.getText());
-
-                Timer timer = new Timer(3000, new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent arg0) {
-                        MathematicalLatexHelperGui.this.render(latexSource.getText());
-                    }
-                });
-                MathematicalLatexHelperGui.this.render("\\text{Saved to folder: "
-                        + path.toAbsolutePath().toString().replace("\\", "}\\backslash \\text{") + " }");
-                timer.setRepeats(false); // Only execute once
-                timer.start();
-            } catch (Exception exception) {
-                JOptionPane.showMessageDialog(this,
-                        "<html>Make sure you entered a valid LaTeX-expression.<br>"
-                                + " Furthermore ensure that you have writing access to"
-                                + " the directory: " + Export.USER_HOME + "<html>",
-                        "Could not save", JOptionPane.ERROR_MESSAGE);
-            }
-
+            handleSave();
         } else if (e.getSource().equals(this.btnCopyImage)) {
             try {
                 Export.setClipboardAsImage(this.latexSource.getText());
@@ -228,6 +234,111 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
                         JOptionPane.ERROR_MESSAGE);
             }
 
+        } else if (e.getSource().equals(this.settingsItem)) {
+            handleSettings();
+        }
+    }
+
+    private void handleSave() {
+        try {
+            Path path = Export.save(this.latexSource.getText());
+
+            Timer timer = new Timer(3000, new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent arg0) {
+                    MathematicalLatexHelperGui.this.render(latexSource.getText());
+                }
+            });
+            MathematicalLatexHelperGui.this.render("\\text{Saved to folder: "
+                    + path.toAbsolutePath().toString().replace("\\", "}\\backslash \\text{") + " }");
+            timer.setRepeats(false); // Only execute once
+            timer.start();
+        } catch (Exception exception) {
+            JOptionPane.showMessageDialog(this,
+                    "<html>Make sure you entered a valid LaTeX-expression.<br>"
+                            + " Furthermore ensure that you have writing access to"
+                            + " the directory: " + Export.USER_HOME + "<html>",
+                    "Could not save", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void handleSettings() {
+        JTextField appIdField = new JTextField();
+        JTextField apiKeyField = new JTextField();
+        JTextField baseUrlField = new JTextField();
+
+        JPanel myPanel = new JPanel();
+        myPanel.setLayout(new BoxLayout(myPanel, BoxLayout.Y_AXIS));
+        JPanel descriptionPnl = new JPanel(new BorderLayout());
+
+        descriptionPnl.add(new JLabel(
+                "<html>Mathematical LaTeX Helper integrates multiple recognition mechanisms for images:<br>" +
+                        "- Formulas rendered by this tool always include the original formula<br>" +
+                        "- The tool will always start by trying to find this original formula within imported images<br>" +
+                        "- If that fails, the tool will try to apply OCR using MathPix if it is available<br>" +
+                        "- If MathPix is not configured or the MathPix servers can't be reached, a java OCR library is used (MathOCR)<br><br>" +
+                        "MathPix offers results superior to MathOCR but is not without drawbacks:<br>" +
+                        "- only works with an active internet connection<br>" +
+                        "- a free developer account allows up to 1000 free queries after which you pay for each query<br>" +
+                        "- even for a free account, you have to link your credit card to the account<br><br>" +
+                        "<i>If you do not want to create a developer account, you can also use MathPix standalone tool.</i><br>"), BorderLayout.WEST);
+        JPanel linkPanel = new JPanel();
+        linkPanel.setLayout(new BoxLayout(linkPanel, BoxLayout.Y_AXIS));
+
+        linkPanel.add(new URLLabel("Create MathPix developer account", "https://dashboard.mathpix.com/login"));
+        linkPanel.add(new URLLabel("Download MathPix standalone tool", "https://mathpix.com"));
+        descriptionPnl.add(linkPanel, BorderLayout.SOUTH);
+        myPanel.add(descriptionPnl);
+
+        myPanel.add(new JLabel(" "));
+
+        Font settingsLabelFont = new Font("Monospaced", Font.PLAIN, 12);
+        JLabel appIdLabel = new JLabel("app_id  :");
+        JLabel apiKeyLabel = new JLabel("api_key :");
+        JLabel baseUrlLabel = new JLabel("base_url:");
+        appIdLabel.setFont(settingsLabelFont);
+        apiKeyLabel.setFont(settingsLabelFont);
+        baseUrlLabel.setFont(settingsLabelFont);
+
+        JPanel appIdPnl = new JPanel(new BorderLayout());
+        appIdPnl.add(appIdLabel, BorderLayout.WEST);
+        appIdPnl.add(appIdField, BorderLayout.CENTER);
+        myPanel.add(appIdPnl);
+
+
+        JPanel apiKeyPnl = new JPanel(new BorderLayout());
+        apiKeyPnl.add(apiKeyLabel, BorderLayout.WEST);
+        apiKeyPnl.add(apiKeyField, BorderLayout.CENTER);
+        myPanel.add(apiKeyPnl);
+
+
+        JPanel baseUrlPnl = new JPanel(new BorderLayout());
+        baseUrlPnl.add(baseUrlLabel, BorderLayout.WEST);
+        baseUrlPnl.add(baseUrlField, BorderLayout.CENTER);
+        myPanel.add(baseUrlPnl);
+
+
+        if (MathPixSettings.isConfigured()) {
+            appIdField.setText(MathPixSettings.getAppId());
+            apiKeyField.setText(MathPixSettings.getAppKey());
+            baseUrlField.setText(MathPixSettings.getBaseUrl());
+        } else {
+            baseUrlField.setText("https://api.mathpix.com/v3/latex");
+        }
+
+        int result = JOptionPane.showConfirmDialog(null, myPanel,
+                "MathPix Settings", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (result == JOptionPane.OK_OPTION) {
+            if (!appIdField.getText().isEmpty() && !apiKeyField.getText().isEmpty() && !baseUrlField.getText().isEmpty()) {
+                try {
+                    MathPixSettings.save(appIdField.getText(), apiKeyField.getText(), baseUrlField.getText());
+                } catch (IOException e1) {
+                    JOptionPane.showMessageDialog(this,
+                            "Could not save settings. " + e1.getMessage(),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
         }
     }
 
@@ -273,9 +384,10 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
      * @param args the arguments
      */
     public static void main(String[] args) {
-        WindowFunctions.setSystemWindowDesign();
+        GuiUtil.setSystemWindowDesign();
         // Set system property for more speed as recommended for apache pdfbox
         System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider");
+        MathPixSettings.load();
         new MathematicalLatexHelperGui();
     }
 

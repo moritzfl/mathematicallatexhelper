@@ -15,6 +15,7 @@ package de.moritzf.latexhelper;
 
 
 import java.awt.*;
+import java.awt.Image;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -32,14 +33,17 @@ import javax.imageio.ImageIO;
 import javax.swing.filechooser.FileSystemView;
 
 
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.*;
 
 import de.moritzf.latexhelper.util.SteganographyUtil;
+import gutenberg.itext.Emitter;
 import gutenberg.itext.ITextContext;
 import gutenberg.itext.PygmentsAdapter;
 import gutenberg.itext.Styles;
+import gutenberg.itext.emitter.RichTextEmitter;
 import gutenberg.itext.emitter.SourceCodeLaTeXExtension;
+import gutenberg.itext.model.Markdown;
+import gutenberg.itext.model.RichText;
 import gutenberg.itext.model.SourceCode;
 import gutenberg.pygments.Pygments;
 import gutenberg.pygments.styles.DefaultStyle;
@@ -161,8 +165,17 @@ public class Export {
             SourceCodeLaTeXExtension extension = new SourceCodeLaTeXExtension(pygmentsAdapter);
             SourceCode sourceCode = new SourceCode("latex", expression);
 
+            com.itextpdf.text.Font font = new com.itextpdf.text.Font();
+            font.setColor(BaseColor.WHITE);
+            font.setSize(0.001f);
+            Chunk chunk = new Chunk("\\##latex##\\" + expression + "\\##latex##\\");
+            chunk.setFont(font);
+
+            document.add(chunk);
+
             extension.emit(sourceCode, iTextContext);
-            iTextContext.getDocument().addHeader("latex", expression);
+            document.addHeader("latex", expression);
+
             iTextContext.close();
         } catch (DocumentException e) {
 

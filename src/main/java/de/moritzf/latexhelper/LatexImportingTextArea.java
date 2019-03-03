@@ -2,6 +2,7 @@ package de.moritzf.latexhelper;
 
 
 import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.parser.PdfTextExtractor;
 import de.moritzf.latexhelper.util.ImageFileUtil;
 import de.moritzf.latexhelper.util.SteganographyUtil;
 import mathpix.MathPix;
@@ -30,6 +31,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Text area that can work with images that have content hidden by steganography. If such content is detected, it
@@ -124,6 +127,16 @@ public class LatexImportingTextArea extends JTextArea implements KeyListener {
         try {
             reader = new PdfReader(pdfFile.getAbsolutePath());
             latex = reader.getInfo().get("latex");
+            if (latex == null || latex.isEmpty()) {
+                String text = PdfTextExtractor.getTextFromPage(reader, 1);
+                LOGGER.log(Level.INFO, text);
+                Pattern pattern = Pattern.compile("\\\\##latex##\\\\(?<latex>.*)\\\\##latex##\\\\");
+                Matcher matcher = pattern.matcher(text);
+                if (matcher.find()) {
+                    latex = matcher.group("latex");
+                }
+
+            }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Could not read pdf. Perhaps the file used was not a valid pdf file.");
         }

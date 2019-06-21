@@ -42,6 +42,13 @@ dependencies {
     compile files("${projectDir}/lib/mathocr-0.0.3.jar")
    
 }
+application {
+    mainClassName = "${project.mainClassName}"
+}
+
+run {
+    args = ['-NSRequiresAquaSystemAppearance','False']
+}
 
 group = 'com.github.moritzfl'
 version = '2.2.1.0'
@@ -51,7 +58,7 @@ targetCompatibility = JavaVersion.VERSION_1_8
 mainClassName = 'de.moritzf.latexhelper.MathematicalLatexHelperGui'
 
 launch4j {
-    mainClassName = "${mainClassName}"
+    mainClassName = "${project.mainClassName}"
     icon = "${projectDir}/src/main/resources/icon.ico"
     jar = "${projectDir}/build/libs/${project.tasks.shadowJar.archiveName}"
 }
@@ -64,9 +71,9 @@ tasks.createExe.dependsOn('shadowJar')
 
 macAppBundle {
     version = "${version}"
-    mainClassName = "${mainClassName}"
-    bundleExecutable = "${description}"
-    bundleIdentifier = "${group}.${description}"
+    mainClassName = "${project.mainClassName}"
+    bundleExecutable = "${project.description}"
+    bundleIdentifier = "${project.group}.${project.description}"
     icon = "${projectDir}/src/main/resources/icon.icns"
     bundleJRE = false
     runtimeConfigurationName = 'shadow'

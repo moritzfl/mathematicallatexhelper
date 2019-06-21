@@ -1,6 +1,8 @@
 package mathpix;
 
 import de.moritzf.latexhelper.util.OsUtil;
+import io.github.soc.directories.ProjectDirectories;
+import io.github.soc.directories.UserDirectories;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -64,12 +66,9 @@ public class MathPixSettings {
     public static File getUserDataFile() {
         Path userHome = Paths.get(System.getProperty("user.home"));
 
-        //For windows, the desktop is user.home for some reason, so go to parent directory
-        String folderName = ".mathematicallatexhelper";
-        if (OsUtil.getOperatingSystemType().equals(OsUtil.OSType.Windows)) {
-            folderName = "mathematicallatexhelper";
-        }
-        Path settingsPath = userHome.resolve(folderName + File.separator + "mathpix.properties");
+        ProjectDirectories myProjDirs = ProjectDirectories.from("com", "github.moritzfl", "mathematicallatexhelper");
+
+        Path settingsPath = userHome.resolve(myProjDirs.configDir + File.separator + "mathpix.properties");
         return settingsPath.toFile();
     }
 

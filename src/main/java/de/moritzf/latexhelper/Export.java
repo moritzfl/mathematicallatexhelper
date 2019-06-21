@@ -22,6 +22,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -48,6 +49,7 @@ import gutenberg.itext.model.SourceCode;
 import gutenberg.pygments.Pygments;
 import gutenberg.pygments.styles.DefaultStyle;
 import gutenberg.util.SimpleKeyValues;
+import io.github.soc.directories.UserDirectories;
 import org.scilab.forge.jlatexmath.TeXConstants;
 import org.scilab.forge.jlatexmath.TeXFormula;
 import org.scilab.forge.jlatexmath.TeXIcon;
@@ -121,11 +123,9 @@ public class Export {
         Calendar cal = Calendar.getInstance();
         String date = dateFormat.format(cal.getTime());
 
-        Path path = USER_HOME;
 
-        if (path.resolve("Desktop").toFile().exists()) {
-            path = path.resolve("Desktop");
-        }
+
+        Path path = Paths.get(UserDirectories.get().desktopDir);
 
         generatePng(latexSource, path.resolve("LaTeX-Rendering_" + date + ".png").toFile());
         generatePdf(latexSource, path.resolve("LaTeX-Rendering_" + date + ".pdf").toFile());

@@ -41,6 +41,7 @@ dependencies {
     compile files("${projectDir}/lib/jai_core-1.1.3.jar")
     compile files("${projectDir}/lib/mathocr-0.0.3.jar")
     compile files("${projectDir}/lib/VAqua7.jar")
+    compile 'io.github.soc:directories:11'
    
 }
 application {

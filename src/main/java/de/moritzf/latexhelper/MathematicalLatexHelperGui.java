@@ -29,6 +29,7 @@ import javax.swing.undo.UndoManager;
 
 import de.moritzf.latexhelper.util.GuiUtil;
 import de.moritzf.latexhelper.util.OsUtil;
+import io.github.soc.directories.UserDirectories;
 import mathpix.MathPixSettings;
 import org.scilab.forge.jlatexmath.TeXConstants;
 import org.scilab.forge.jlatexmath.TeXFormula;
@@ -256,7 +257,7 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
             JOptionPane.showMessageDialog(this,
                     "<html>Make sure you entered a valid LaTeX-expression.<br>"
                             + " Furthermore ensure that you have writing access to"
-                            + " the directory: " + Export.USER_HOME + "<html>",
+                            + " the directory: " + UserDirectories.get().desktopDir + "<html>",
                     "Could not save", JOptionPane.ERROR_MESSAGE);
         }
     }

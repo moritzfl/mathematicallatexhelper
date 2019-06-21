@@ -21,6 +21,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
@@ -36,15 +37,14 @@ import javax.swing.filechooser.FileSystemView;
 
 import com.itextpdf.text.*;
 
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.*;
 import de.moritzf.latexhelper.util.SteganographyUtil;
-import gutenberg.itext.Emitter;
 import gutenberg.itext.ITextContext;
 import gutenberg.itext.PygmentsAdapter;
 import gutenberg.itext.Styles;
-import gutenberg.itext.emitter.RichTextEmitter;
 import gutenberg.itext.emitter.SourceCodeLaTeXExtension;
-import gutenberg.itext.model.Markdown;
-import gutenberg.itext.model.RichText;
 import gutenberg.itext.model.SourceCode;
 import gutenberg.pygments.Pygments;
 import gutenberg.pygments.styles.DefaultStyle;
@@ -53,6 +53,8 @@ import io.github.soc.directories.UserDirectories;
 import org.scilab.forge.jlatexmath.TeXConstants;
 import org.scilab.forge.jlatexmath.TeXFormula;
 import org.scilab.forge.jlatexmath.TeXIcon;
+
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 
 /**
@@ -124,7 +126,6 @@ public class Export {
         String date = dateFormat.format(cal.getTime());
 
 
-
         Path path = Paths.get(UserDirectories.get().desktopDir);
 
         generatePng(latexSource, path.resolve("LaTeX-Rendering_" + date + ".png").toFile());
@@ -165,23 +166,33 @@ public class Export {
             SourceCodeLaTeXExtension extension = new SourceCodeLaTeXExtension(pygmentsAdapter);
             SourceCode sourceCode = new SourceCode("latex", expression);
 
-            com.itextpdf.text.Font font = new com.itextpdf.text.Font();
-            font.setColor(BaseColor.WHITE);
-            font.setSize(0.001f);
-            Chunk chunk = new Chunk("\\##latex##\\" + expression + "\\##latex##\\");
-            chunk.setFont(font);
-
-            document.add(chunk);
-
             extension.emit(sourceCode, iTextContext);
             document.addHeader("latex", expression);
-
             iTextContext.close();
+
+            //Add hidden text for recovery of the latex expression that was used
+            addHiddenText(file, "\\##latex##\\" + expression + "\\##latex##\\");
         } catch (DocumentException e) {
 
             throw new IOException(e.getMessage() + "\n" + e.getCause());
         }
 
+    }
+
+
+    private static void addHiddenText(File targetFile, String text) throws IOException, DocumentException {
+        PdfReader reader = new PdfReader(targetFile.getAbsolutePath());
+        File tempFile = File.createTempFile("clipboard", ".pdf");
+        Rectangle size = reader.getPageSize(1);
+        PdfStamper stamper = new PdfStamper(reader, new FileOutputStream(tempFile));
+        PdfContentByte under = stamper.getUnderContent(1);
+        Font f = new Font(Font.FontFamily.HELVETICA, 0.001f);
+        f.setColor(BaseColor.WHITE);
+        Phrase p = new Phrase(text, f);
+        ColumnText.showTextAligned(under, Element.ALIGN_CENTER, p, size.getWidth() / 2, size.getHeight() / 2, 0);
+        stamper.close();
+        reader.close();
+        Files.move(tempFile.toPath(), targetFile.toPath(), REPLACE_EXISTING);
     }
 
 

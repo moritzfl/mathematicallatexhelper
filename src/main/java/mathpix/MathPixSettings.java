@@ -66,9 +66,9 @@ public class MathPixSettings {
     public static File getUserDataFile() {
         Path userHome = Paths.get(System.getProperty("user.home"));
 
-        ProjectDirectories myProjDirs = ProjectDirectories.from("com", "github.moritzfl", "mathematicallatexhelper");
+        ProjectDirectories myProjDirs = ProjectDirectories.from("de", "moritzf", "mathematicallatexhelper");
 
-        Path settingsPath = userHome.resolve(myProjDirs.configDir + File.separator + "mathpix.properties");
+        Path settingsPath = Paths.get(myProjDirs.configDir).resolve(Paths.get("mathpix.properties"));
         return settingsPath.toFile();
     }
 
@@ -82,10 +82,6 @@ public class MathPixSettings {
         File settingsFile = getUserDataFile();
         if (!settingsFile.exists()) {
             settingsFile.getParentFile().mkdir();
-            //Hide folder for Windows
-            if (OsUtil.getOperatingSystemType().equals(OsUtil.OSType.Windows)) {
-                Runtime.getRuntime().exec("attrib +H " + settingsFile.getParentFile().getAbsolutePath());
-            }
             settingsFile.createNewFile();
         }
         return settingsFile;

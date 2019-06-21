@@ -1,8 +1,6 @@
 package mathpix;
 
-import de.moritzf.latexhelper.util.OsUtil;
 import io.github.soc.directories.ProjectDirectories;
-import io.github.soc.directories.UserDirectories;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -64,8 +62,6 @@ public class MathPixSettings {
      * @return the user data file
      */
     public static File getUserDataFile() {
-        Path userHome = Paths.get(System.getProperty("user.home"));
-
         ProjectDirectories myProjDirs = ProjectDirectories.from("de", "moritzf", "mathematicallatexhelper");
 
         Path settingsPath = Paths.get(myProjDirs.configDir).resolve(Paths.get("mathpix.properties"));

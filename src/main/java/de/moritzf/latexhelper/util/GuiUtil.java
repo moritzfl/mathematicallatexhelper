@@ -13,17 +13,14 @@
  */
 package de.moritzf.latexhelper.util;
 
-import de.moritzf.latexhelper.MathematicalLatexHelperGui;
-
 import java.awt.GraphicsDevice;
 import java.awt.MouseInfo;
 import java.awt.Rectangle;
 import java.awt.Window;
-import java.lang.reflect.Method;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import javax.swing.UIManager;
+
+
+import javax.swing.*;
 
 /**
  * The Class GuiUtil. This class provides certain functions for windows.
@@ -54,38 +51,46 @@ public class GuiUtil {
     }
 
     /**
-     * Sets system window design.
+     * Enables OSX fullscreen mode for window.
+     *
+     * @param window the window
      */
-    public static final void setSystemWindowDesign() {
+    public static void enableOSXFullscreen(JFrame window) {
+        if (OsUtil.getOperatingSystemType().equals(OsUtil.OSType.MacOS)) {
+            window.getRootPane().putClientProperty("apple.awt.fullscreenable", Boolean.valueOf(true));
+        }
+    }
+
+    /**
+     * Sets system look and feel.
+     */
+    public static void setSystemLookAndFeel() {
+
+        // Set System look and feel according to the current OS
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             if (OsUtil.getOperatingSystemType().equals(OsUtil.OSType.MacOS)) {
-                System.setProperty("apple.laf.useScreenMenuBar", "true");
-                System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Test");
+                try {
+                    UIManager.setLookAndFeel("org.violetlib.aqua.AquaLookAndFeel");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                }
+                activateMacMenu();
+            } else {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             }
+
         } catch (Exception e) {
-            System.out.println("Could not set System LookAndFeel.");
+            //no "system like" style will be available
             e.printStackTrace();
         }
     }
 
-
     /**
-     * Enable osx fullscreen.
-     *
-     * @param window the window
+     * Activate mac menu. This enables the native mac menu bar instead of the "Windows-like" menu inside of frames.
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public static void enableOSXFullscreen(Window window) {
-        try {
-            Class util = Class.forName("com.apple.eawt.FullScreenUtilities");
-            Class params[] = new Class[]{Window.class, Boolean.TYPE};
-            Method method = util.getMethod("setWindowCanFullScreen", params);
-            method.invoke(util, window, true);
-        } catch (Exception e) {
-            Logger.getLogger(MathematicalLatexHelperGui.class.getName()).log(Level.SEVERE,
-                    "Could not enable OSX-Fullscreen", e);
-        }
+    private static void activateMacMenu() {
+        System.setProperty("apple.laf.useScreenMenuBar", "true");
     }
 
 

@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
@@ -384,7 +383,7 @@ public class MathematicalLatexHelperGui extends JFrame implements ActionListener
      * @param args the arguments
      */
     public static void main(String[] args) {
-        GuiUtil.setSystemWindowDesign();
+        GuiUtil.setSystemLookAndFeel();
         // Set system property for more speed as recommended for apache pdfbox
         System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider");
         MathPixSettings.load();

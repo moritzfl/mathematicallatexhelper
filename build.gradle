@@ -40,6 +40,7 @@ dependencies {
     compile 'com.itextpdf.tool:xmlworker:5.5.13'
     compile files("${projectDir}/lib/jai_core-1.1.3.jar")
     compile files("${projectDir}/lib/mathocr-0.0.3.jar")
+    compile files("${projectDir}/lib/VAqua7.jar")
    
 }
 application {

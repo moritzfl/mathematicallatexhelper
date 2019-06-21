@@ -40,6 +40,7 @@ import com.itextpdf.text.*;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.*;
+import de.moritzf.latexhelper.util.OsUtil;
 import de.moritzf.latexhelper.util.SteganographyUtil;
 import gutenberg.itext.ITextContext;
 import gutenberg.itext.PygmentsAdapter;
@@ -65,11 +66,6 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 public class Export {
 
     /**
-     * The constant USER_HOME.
-     */
-    public static final Path USER_HOME = FileSystemView.getFileSystemView().getHomeDirectory().toPath();
-
-    /**
      * Sets the clipboard. Renders the LaTeX-expression and stores an image in
      * the clipboard that can be pasted into any other software that will allow
      * it.
@@ -92,7 +88,7 @@ public class Export {
             File file = File.createTempFile("clipboard", ".pdf");
             generatePdf(expression, file);
 
-            if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+            if (OsUtil.getOperatingSystemType().equals(OsUtil.OSType.MacOS)) {
                 String[] cmd = {"osascript", "-e", "tell app \"Finder\" to set the clipboard to ( POSIX file \""
                         + file.getAbsolutePath() + "\" )"};
                 try {

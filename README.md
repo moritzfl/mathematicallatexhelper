@@ -1,6 +1,6 @@
 # Mathematical LaTeX Helper
 
-![Screenshot](media/mathematicallatexhelper.png)
+![Screenshot](http://moritzf.de/projects/media/mathematicallatexhelper.png)
 
 [[Download on GitHub](https://github.com/moritzfl/mathematicallatexhelper/releases)]
 

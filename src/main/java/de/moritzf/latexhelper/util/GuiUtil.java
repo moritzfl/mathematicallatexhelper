@@ -13,11 +13,14 @@
  */
 package de.moritzf.latexhelper.util;
 
+import com.bulenkov.darcula.DarculaLaf;
+
 import java.awt.GraphicsDevice;
 import java.awt.MouseInfo;
 import java.awt.Rectangle;
 import java.awt.Window;
-
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 
 import javax.swing.*;
@@ -57,7 +60,11 @@ public class GuiUtil {
      */
     public static void enableOSXFullscreen(JFrame window) {
         if (OsUtil.getOperatingSystemType().equals(OsUtil.OSType.MacOS)) {
-            window.getRootPane().putClientProperty("apple.awt.fullscreenable", Boolean.valueOf(true));
+            try {
+                window.getRootPane().putClientProperty("apple.awt.fullscreenable", Boolean.valueOf(true));
+            } catch (Exception e) {
+                // full screen will not be available
+            }
         }
     }
 
@@ -69,20 +76,17 @@ public class GuiUtil {
         // Set System look and feel according to the current OS
         try {
             if (OsUtil.getOperatingSystemType().equals(OsUtil.OSType.MacOS)) {
-                try {
-                    UIManager.setLookAndFeel("org.violetlib.aqua.AquaLookAndFeel");
-                } catch (Exception e) {
-                    e.printStackTrace();
+                activateMacMenu();
+                if (isDarkModeActive()) {
+                    UIManager.setLookAndFeel(new DarculaLaf());
+                } else {
                     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                 }
-                activateMacMenu();
             } else {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             }
-
         } catch (Exception e) {
-            //no "system like" style will be available
-            e.printStackTrace();
+            // No System look and feel will be available
         }
     }
 
@@ -90,7 +94,33 @@ public class GuiUtil {
      * Activate mac menu. This enables the native mac menu bar instead of the "Windows-like" menu inside of frames.
      */
     private static void activateMacMenu() {
-        System.setProperty("apple.laf.useScreenMenuBar", "true");
+        try {
+            System.setProperty("apple.laf.useScreenMenuBar", "true");
+        } catch (Exception e) {
+            // No screen menu bar will be available.
+        }
+    }
+
+    public static boolean isDarkModeActive() {
+        //defaults read -g AppleInterfaceStyle
+        if (OsUtil.getOperatingSystemType().equals(OsUtil.OSType.MacOS)) {
+            try {
+                String cmd = "defaults read -g AppleInterfaceStyle";
+                Process p = Runtime.getRuntime().exec(cmd);
+                p.waitFor();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                String completeText = "";
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    completeText += line;
+                }
+                return completeText.equalsIgnoreCase("Dark");
+            } catch (Exception e) {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
 

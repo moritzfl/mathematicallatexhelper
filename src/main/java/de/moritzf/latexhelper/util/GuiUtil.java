@@ -13,7 +13,6 @@
  */
 package de.moritzf.latexhelper.util;
 
-import com.bulenkov.darcula.DarculaLaf;
 
 import java.awt.GraphicsDevice;
 import java.awt.MouseInfo;
@@ -77,14 +76,8 @@ public class GuiUtil {
         try {
             if (OsUtil.getOperatingSystemType().equals(OsUtil.OSType.MacOS)) {
                 activateMacMenu();
-                if (isDarkModeActive()) {
-                    UIManager.setLookAndFeel(new DarculaLaf());
-                } else {
-                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                }
-            } else {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             }
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
             // No System look and feel will be available
         }
